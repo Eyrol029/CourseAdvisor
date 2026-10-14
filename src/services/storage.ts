@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { localDatabase } from "./database";
 
 export type StudentProfile = {
   name: string;
@@ -73,70 +74,82 @@ export const defaultConfidence: DomainConfidence = {
   professional: 7,
 };
 
+/**
+ * Offline-first Storage Service.
+ * Bridges device SQLite relational database with local storage cache,
+ * ensuring 100% offline persistence and instant UI reactivity.
+ */
 export const storage = {
+  async init(): Promise<void> {
+    await localDatabase.init();
+  },
+
   async getProfile(): Promise<StudentProfile> {
     try {
+      return await localDatabase.getProfile();
+    } catch {
       const data = await AsyncStorage.getItem(KEYS.PROFILE);
       return data ? JSON.parse(data) : defaultProfile;
-    } catch {
-      return defaultProfile;
     }
   },
 
   async setProfile(profile: StudentProfile): Promise<void> {
-    await AsyncStorage.setItem(KEYS.PROFILE, JSON.stringify(profile));
+    await localDatabase.setProfile(profile);
   },
 
   async getStanding(): Promise<AcademicStanding> {
     try {
+      return await localDatabase.getStanding();
+    } catch {
       const data = await AsyncStorage.getItem(KEYS.STANDING);
       return data ? JSON.parse(data) : defaultStanding;
-    } catch {
-      return defaultStanding;
     }
   },
 
   async setStanding(standing: AcademicStanding): Promise<void> {
-    await AsyncStorage.setItem(KEYS.STANDING, JSON.stringify(standing));
+    await localDatabase.setStanding(standing);
   },
 
   async getCompleted(): Promise<string[]> {
     try {
+      return await localDatabase.getCompletedCourses();
+    } catch {
       const data = await AsyncStorage.getItem(KEYS.COMPLETED);
       return data ? JSON.parse(data) : [];
-    } catch {
-      return [];
     }
   },
 
   async setCompleted(completedCodes: string[]): Promise<void> {
-    await AsyncStorage.setItem(KEYS.COMPLETED, JSON.stringify(completedCodes));
+    await localDatabase.setCompletedCourses(completedCodes);
   },
 
   async getConfidence(): Promise<DomainConfidence> {
     try {
+      return await localDatabase.getConfidence();
+    } catch {
       const data = await AsyncStorage.getItem(KEYS.CONFIDENCE);
       return data ? JSON.parse(data) : defaultConfidence;
-    } catch {
-      return defaultConfidence;
     }
   },
 
   async setConfidence(confidence: DomainConfidence): Promise<void> {
-    await AsyncStorage.setItem(KEYS.CONFIDENCE, JSON.stringify(confidence));
+    await localDatabase.setConfidence(confidence);
   },
 
   async getSavedRoadmaps(): Promise<SavedRoadmap[]> {
     try {
+      return await localDatabase.getSavedRoadmaps();
+    } catch {
       const data = await AsyncStorage.getItem(KEYS.SAVED_ROADMAPS);
       return data ? JSON.parse(data) : [];
-    } catch {
-      return [];
     }
   },
 
   async setSavedRoadmaps(roadmaps: SavedRoadmap[]): Promise<void> {
     await AsyncStorage.setItem(KEYS.SAVED_ROADMAPS, JSON.stringify(roadmaps));
+    for (const r of roadmaps) {
+      await localDatabase.saveRoadmap(r);
+    }
   },
 
   async getOnboarded(): Promise<boolean> {
@@ -153,6 +166,6 @@ export const storage = {
   },
 
   async clearAll(): Promise<void> {
-    await AsyncStorage.multiRemove(Object.values(KEYS));
+    await localDatabase.clearAll();
   },
 };

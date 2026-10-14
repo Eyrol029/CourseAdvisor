@@ -4,7 +4,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "../components/Icon";
 import PrimaryButton from "../components/PrimaryButton";
 import { firstTermCodes } from "../data/status";
-import { AcademicStanding, DomainConfidence } from "../services/storage";
+import { AcademicStanding, DomainConfidence, StudentProfile } from "../services/storage";
+import { useAppState } from "../state/AppState";
 import { colors, fonts, radius } from "../theme";
 import Step1Profile from "./setup/Step1Profile";
 import Step2Curriculum from "./setup/Step2Curriculum";
@@ -32,8 +33,12 @@ export default function Setup({
     completed: Set<string>,
     standing?: AcademicStanding,
     confidence?: DomainConfidence,
+    profile?: StudentProfile,
   ) => void;
 }) {
+  const { profile, setProfile } = useAppState();
+  const [name, setName] = useState(profile.name || "Vanisa Lungay");
+  const [studentId, setStudentId] = useState(profile.studentId || "1021322");
   const [step, setStep] = useState(0);
   const [year, setYear] = useState<1 | 2 | 3 | 4>(1);
   const [semester, setSemester] = useState<
@@ -66,8 +71,24 @@ export default function Setup({
   };
 
   const next = () => {
-    if (step === 7) {
-      onFinish(completed, { year, semester }, confidence);
+    if (step === 1) {
+      setProfile({
+        ...profile,
+        name: name.trim() || profile.name,
+        studentId: studentId.trim() || profile.studentId,
+      });
+      setStep(step + 1);
+    } else if (step === 7) {
+      onFinish(
+        completed,
+        { year, semester },
+        confidence,
+        {
+          ...profile,
+          name: name.trim() || profile.name,
+          studentId: studentId.trim() || profile.studentId,
+        }
+      );
     } else {
       setStep(step + 1);
     }
@@ -102,7 +123,14 @@ export default function Setup({
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll}>
-        {step === 1 && <Step1Profile />}
+        {step === 1 && (
+          <Step1Profile
+            name={name}
+            setName={setName}
+            studentId={studentId}
+            setStudentId={setStudentId}
+          />
+        )}
         {step === 2 && <Step2Curriculum />}
         {step === 3 && (
           <Step3Standing

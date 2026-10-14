@@ -284,6 +284,40 @@ export default function ProfileScreen() {
           )}
         </View>
 
+        {/* Local Relational Database & Offline-First Storage */}
+        <View style={styles.sectionCard}>
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+            <Text style={styles.sectionTitle}>STORAGE & DATABASE</Text>
+            <View style={styles.dbBadge}>
+              <View style={styles.dbDot} />
+              <Text style={styles.dbBadgeText}>100% Offline (Local SQLite)</Text>
+            </View>
+          </View>
+
+          <Text style={{ fontFamily: fonts.regular, fontSize: 13, color: colors.muted, lineHeight: 18 }}>
+            All curriculum entities, prerequisite DAGs, student progress, and roadmap schedules are stored directly on your device storage without cloud dependency.
+          </Text>
+
+          <View style={styles.dbGrid}>
+            <View style={styles.dbGridItem}>
+              <Text style={styles.dbGridLabel}>Courses Entity</Text>
+              <Text style={styles.dbGridValue}>{allCourses.length} Registered</Text>
+            </View>
+            <View style={styles.dbGridItem}>
+              <Text style={styles.dbGridLabel}>Prerequisites</Text>
+              <Text style={styles.dbGridValue}>29 Graph Edges</Text>
+            </View>
+            <View style={styles.dbGridItem}>
+              <Text style={styles.dbGridLabel}>Query Engine</Text>
+              <Text style={styles.dbGridValue}>Recursive SQL CTE</Text>
+            </View>
+            <View style={styles.dbGridItem}>
+              <Text style={styles.dbGridLabel}>Cloud / Network</Text>
+              <Text style={styles.dbGridValue}>Disabled (Private)</Text>
+            </View>
+          </View>
+        </View>
+
         {/* System & Storage Reset */}
         <View style={styles.dangerSection}>
           <Pressable style={styles.resetBtn} onPress={handleResetData}>
@@ -672,5 +706,53 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bold,
     fontSize: 13,
     color: colors.white,
+  },
+  dbBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: "#ECFDF5",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: "#A7F3D0",
+  },
+  dbDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: "#10B981",
+  },
+  dbBadgeText: {
+    fontFamily: fonts.bold,
+    fontSize: 10,
+    color: "#065F46",
+  },
+  dbGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginTop: 4,
+  },
+  dbGridItem: {
+    flex: 1,
+    minWidth: "45%",
+    backgroundColor: colors.paper,
+    padding: 10,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: colors.line,
+  },
+  dbGridLabel: {
+    fontFamily: fonts.medium,
+    fontSize: 11,
+    color: colors.muted,
+  },
+  dbGridValue: {
+    fontFamily: fonts.bold,
+    fontSize: 12,
+    color: colors.ink,
+    marginTop: 2,
   },
 });

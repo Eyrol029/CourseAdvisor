@@ -33,6 +33,7 @@ type AppStateValue = {
     completed: Set<string>,
     standing?: AcademicStanding,
     confidence?: DomainConfidence,
+    profile?: StudentProfile,
   ) => void;
   savedRoadmaps: SavedRoadmap[];
   saveCurrentRoadmap: (name: string, terms: any) => Promise<void>;
@@ -55,6 +56,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     async function loadData() {
       try {
+        await storage.init();
         const [savedProf, savedStand, savedComp, savedConf, savedOnboard, savedRoads] =
           await Promise.all([
             storage.getProfile(),
@@ -116,10 +118,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     done: Set<string>,
     newStanding?: AcademicStanding,
     newConfidence?: DomainConfidence,
+    newProfile?: StudentProfile,
   ) => {
     setCompleted(done);
     if (newStanding) setStanding(newStanding);
     if (newConfidence) setConfidence(newConfidence);
+    if (newProfile) setProfile(newProfile);
     setOnboardedState(true);
     storage.setOnboarded(true);
   };

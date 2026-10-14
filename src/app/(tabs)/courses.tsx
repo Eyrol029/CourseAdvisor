@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Modal,
   Pressable,
@@ -13,6 +13,7 @@ import CourseRow from "../../components/CourseRow";
 import Icon from "../../components/Icon";
 import { allCourses, Course } from "../../data/curriculum";
 import { prerequisiteGraph } from "../../services/prerequisiteGraph";
+import { CTEResultNode, getPrerequisiteChainWithCTE } from "../../services/database";
 import { useAppState } from "../../state/AppState";
 import { colors, fonts, radius } from "../../theme";
 
@@ -25,6 +26,23 @@ export default function CoursesScreen() {
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("All");
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [cteChain, setCteChain] = useState<CTEResultNode[]>([]);
+
+  useEffect(() => {
+    let active = true;
+    if (selectedCourse && selectedCourse.prerequisites.length > 0) {
+      getPrerequisiteChainWithCTE(selectedCourse.code)
+        .then((chain) => {
+          if (active) setCteChain(chain);
+        })
+        .catch(() => {
+          if (active) setCteChain([]);
+        });
+    }
+    return () => {
+      active = false;
+    };
+  }, [selectedCourse]);
 
   // Filter courses
   const filteredCourses = allCourses.filter((course) => {
@@ -188,7 +206,10 @@ export default function CoursesScreen() {
         visible={!!selectedCourse}
         animationType="slide"
         presentationStyle="pageSheet"
-        onRequestClose={() => setSelectedCourse(null)}
+        onRequestClose={() => {
+          setSelectedCourse(null);
+          setCteChain([]);
+        }}
       >
         <SafeAreaView style={{ flex: 1, backgroundColor: colors.paper }}>
           {selectedCourse && (
@@ -199,7 +220,10 @@ export default function CoursesScreen() {
                   <Text style={styles.modalTitle}>{selectedCourse.code}</Text>
                 </View>
                 <Pressable
-                  onPress={() => setSelectedCourse(null)}
+                  onPress={() => {
+                    setSelectedCourse(null);
+                    setCteChain([]);
+                  }}
                   style={styles.modalCloseBtn}
                 >
                   <Icon name="close" size={18} color={colors.ink} />
@@ -248,9 +272,16 @@ export default function CoursesScreen() {
 
                 {/* Prerequisites Requirements */}
                 <View style={styles.detailSectionBlock}>
-                  <Text style={styles.sectionHeader}>
-                    PREREQUISITES ({selectedCourse.prerequisites.length})
-                  </Text>
+                  <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+                    <Text style={styles.sectionHeader}>
+                      PREREQUISITES ({selectedCourse.prerequisites.length})
+                    </Text>
+                    {cteChain.length > 0 && (
+                      <View style={styles.cteTag}>
+                        <Text style={styles.cteTagText}>SQL CTE: {cteChain.length} in tree</Text>
+                      </View>
+                    )}
+                  </View>
                   {selectedCourse.prerequisites.length === 0 ? (
                     <Text style={styles.sectionEmpty}>
                       None. Can be taken directly in sequence.
@@ -277,6 +308,30 @@ export default function CoursesScreen() {
                         </View>
                       );
                     })
+                  )}
+
+                  {/* Deep Ancestor Chain if deep tree exists */}
+                  {cteChain.length > selectedCourse.prerequisites.length && (
+                    <View style={styles.cteBox}>
+                      <Text style={styles.cteTitle}>RECURSIVE TREE CHAIN (SQLITE CTE)</Text>
+                      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 4 }}>
+                        {cteChain.map((node) => {
+                          const isDone = completed.has(node.code);
+                          return (
+                            <View
+                              key={node.code}
+                              style={[styles.cteNodePill, isDone && styles.cteNodePillDone]}
+                            >
+                              <Text
+                                style={[styles.cteNodeText, isDone && styles.cteNodeTextDone]}
+                              >
+                                {node.code} (d:{node.depth})
+                              </Text>
+                            </View>
+                          );
+                        })}
+                      </View>
+                    </View>
                   )}
                 </View>
 
@@ -582,5 +637,54 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bold,
     fontSize: 12,
     color: colors.muted,
+  },
+  cteTag: {
+    backgroundColor: "#EFF6FF",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: "#BFDBFE",
+  },
+  cteTagText: {
+    fontFamily: fonts.bold,
+    fontSize: 10,
+    color: colors.primary,
+  },
+  cteBox: {
+    backgroundColor: colors.paper,
+    padding: 10,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: colors.line,
+    marginTop: 4,
+    gap: 6,
+  },
+  cteTitle: {
+    fontFamily: fonts.bold,
+    fontSize: 9,
+    letterSpacing: 1.2,
+    color: colors.primary,
+  },
+  cteNodePill: {
+    backgroundColor: colors.white,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: colors.line,
+  },
+  cteNodePillDone: {
+    backgroundColor: "#ECFDF5",
+    borderColor: "#A7F3D0",
+  },
+  cteNodeText: {
+    fontFamily: fonts.medium,
+    fontSize: 11,
+    color: colors.ink,
+  },
+  cteNodeTextDone: {
+    color: "#065F46",
+    fontFamily: fonts.bold,
   },
 });

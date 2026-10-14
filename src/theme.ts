@@ -16,4 +16,4 @@ export const fonts = {
   bold: "DMSans_700Bold",
 };
 
-export const radius = { sm: 10, md: 16, lg: 24 };
+export const radius = { sm: 10, md: 16, lg: 24, pill: 999 };
