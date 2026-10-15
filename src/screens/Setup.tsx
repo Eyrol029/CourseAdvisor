@@ -1,10 +1,22 @@
+import { router } from "expo-router";
 import { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "../components/Icon";
 import PrimaryButton from "../components/PrimaryButton";
 import { firstTermCodes } from "../data/status";
-import { AcademicStanding, DomainConfidence, StudentProfile } from "../services/storage";
+import {
+  AcademicStanding,
+  DomainConfidence,
+  StudentProfile,
+} from "../services/storage";
 import { useAppState } from "../state/AppState";
 import { colors, fonts, radius } from "../theme";
 import Step1Profile from "./setup/Step1Profile";
@@ -36,15 +48,18 @@ export default function Setup({
     profile?: StudentProfile,
   ) => void;
 }) {
-  const { profile, setProfile } = useAppState();
-  const [name, setName] = useState(profile.name || "Vanisa Lungay");
-  const [studentId, setStudentId] = useState(profile.studentId || "1021322");
+  const { profile, setProfile, signOut } = useAppState();
+  const [name, setName] = useState(profile.name || "");
+  const [studentId, setStudentId] = useState(profile.studentId || "");
+  const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
   const [step, setStep] = useState(0);
   const [year, setYear] = useState<1 | 2 | 3 | 4>(1);
   const [semester, setSemester] = useState<
     "First Semester" | "Second Semester" | "Summer"
   >("Second Semester");
-  const [completed, setCompleted] = useState<Set<string>>(new Set(firstTermCodes));
+  const [completed, setCompleted] = useState<Set<string>>(
+    new Set(firstTermCodes),
+  );
   const [confidence, setConfidence] = useState<DomainConfidence>({
     foundations: 7,
     numeracy: 6,
@@ -52,7 +67,93 @@ export default function Setup({
     professional: 7,
   });
 
-  if (step === 0) return <Welcome onStart={() => setStep(1)} />;
+  const handleConfirmSignOut = async () => {
+    setShowSignOutConfirm(false);
+    await signOut();
+    router.replace("/auth" as any);
+  };
+
+  if (step === 0) {
+    return (
+      <>
+        <Welcome
+          onStart={() => setStep(1)}
+          onSignOut={() => setShowSignOutConfirm(true)}
+        />
+        {/* Sign Out Confirmation Modal */}
+        <Modal
+          visible={showSignOutConfirm}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowSignOutConfirm(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.dialogCard}>
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: 12 }}
+              >
+                <View
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 22,
+                    backgroundColor: "#fee2e2",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Icon name="logout" size={20} color="#dc2626" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.dialogTitle}>
+                    Sign out of CourseAdvisor?
+                  </Text>
+                  <Text
+                    style={{
+                      fontFamily: fonts.regular,
+                      fontSize: 12,
+                      color: colors.muted,
+                      marginTop: 2,
+                    }}
+                  >
+                    Active: {profile.name} ({profile.studentId})
+                  </Text>
+                </View>
+              </View>
+
+              <Text
+                style={{
+                  fontFamily: fonts.regular,
+                  fontSize: 13,
+                  lineHeight: 19,
+                  color: colors.ink,
+                  marginTop: 4,
+                }}
+              >
+                Are you sure you want to sign out? You will be returned to the
+                login screen.
+              </Text>
+
+              <View style={styles.dialogButtons}>
+                <Pressable
+                  style={[styles.dialogBtn, styles.dialogBtnCancel]}
+                  onPress={() => setShowSignOutConfirm(false)}
+                >
+                  <Text style={styles.dialogBtnCancelText}>Cancel</Text>
+                </Pressable>
+                <Pressable
+                  style={[styles.dialogBtn, { backgroundColor: "#dc2626" }]}
+                  onPress={handleConfirmSignOut}
+                >
+                  <Text style={styles.dialogBtnSaveText}>Sign out</Text>
+                </Pressable>
+              </View>
+            </View>
+          </View>
+        </Modal>
+      </>
+    );
+  }
 
   const toggleCompleted = (code: string) => {
     const next = new Set(completed);
@@ -79,16 +180,11 @@ export default function Setup({
       });
       setStep(step + 1);
     } else if (step === 7) {
-      onFinish(
-        completed,
-        { year, semester },
-        confidence,
-        {
-          ...profile,
-          name: name.trim() || profile.name,
-          studentId: studentId.trim() || profile.studentId,
-        }
-      );
+      onFinish(completed, { year, semester }, confidence, {
+        ...profile,
+        name: name.trim() || profile.name,
+        studentId: studentId.trim() || profile.studentId,
+      });
     } else {
       setStep(step + 1);
     }
@@ -98,8 +194,8 @@ export default function Setup({
     step === 7
       ? "Enter CourseAdvisor"
       : step === 6
-      ? "Generate Academic Plan"
-      : "Continue";
+        ? "Generate Academic Plan"
+        : "Continue";
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -115,7 +211,12 @@ export default function Setup({
         <Text style={styles.stepLabel}>
           STEP {step} OF 7 · {labels[step - 1]}
         </Text>
-        <View style={{ width: 36 }} />
+        <Pressable
+          style={styles.headSignOut}
+          onPress={() => setShowSignOutConfirm(true)}
+        >
+          <Icon name="logout" size={15} color="#e11d48" />
+        </Pressable>
       </View>
 
       <View style={styles.track}>
@@ -171,6 +272,78 @@ export default function Setup({
       <View style={styles.footer}>
         <PrimaryButton label={buttonLabel} onPress={next} />
       </View>
+
+      {/* Sign Out Confirmation Modal */}
+      <Modal
+        visible={showSignOutConfirm}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowSignOutConfirm(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.dialogCard}>
+            <View
+              style={{ flexDirection: "row", alignItems: "center", gap: 12 }}
+            >
+              <View
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 22,
+                  backgroundColor: "#fee2e2",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Icon name="logout" size={20} color="#dc2626" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.dialogTitle}>
+                  Sign out of CourseAdvisor?
+                </Text>
+                <Text
+                  style={{
+                    fontFamily: fonts.regular,
+                    fontSize: 12,
+                    color: colors.muted,
+                    marginTop: 2,
+                  }}
+                >
+                  Active: {profile.name} ({profile.studentId})
+                </Text>
+              </View>
+            </View>
+
+            <Text
+              style={{
+                fontFamily: fonts.regular,
+                fontSize: 13,
+                lineHeight: 19,
+                color: colors.ink,
+                marginTop: 4,
+              }}
+            >
+              Are you sure you want to sign out? You will be returned to the
+              login screen.
+            </Text>
+
+            <View style={styles.dialogButtons}>
+              <Pressable
+                style={[styles.dialogBtn, styles.dialogBtnCancel]}
+                onPress={() => setShowSignOutConfirm(false)}
+              >
+                <Text style={styles.dialogBtnCancelText}>Cancel</Text>
+              </Pressable>
+              <Pressable
+                style={[styles.dialogBtn, { backgroundColor: "#dc2626" }]}
+                onPress={handleConfirmSignOut}
+              >
+                <Text style={styles.dialogBtnSaveText}>Sign out</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -211,4 +384,59 @@ const styles = StyleSheet.create({
   fill: { height: 4, backgroundColor: colors.primary },
   scroll: { padding: 20, paddingBottom: 32 },
   footer: { padding: 20, paddingTop: 8 },
+  headSignOut: {
+    width: 36,
+    height: 36,
+    borderRadius: radius.sm,
+    backgroundColor: "#fff1f2",
+    borderWidth: 1,
+    borderColor: "#fecdd3",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 24,
+  },
+  dialogCard: {
+    width: "100%",
+    backgroundColor: colors.white,
+    borderRadius: radius.lg,
+    padding: 20,
+    gap: 12,
+  },
+  dialogTitle: {
+    fontFamily: fonts.bold,
+    fontSize: 17,
+    color: colors.ink,
+  },
+  dialogButtons: {
+    flexDirection: "row",
+    gap: 10,
+    marginTop: 8,
+  },
+  dialogBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: radius.sm,
+    alignItems: "center",
+  },
+  dialogBtnCancel: {
+    backgroundColor: colors.paper,
+    borderWidth: 1,
+    borderColor: colors.line,
+  },
+  dialogBtnCancelText: {
+    fontFamily: fonts.bold,
+    fontSize: 13,
+    color: colors.muted,
+  },
+  dialogBtnSaveText: {
+    fontFamily: fonts.bold,
+    fontSize: 13,
+    color: colors.white,
+  },
 });

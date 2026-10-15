@@ -1,8 +1,8 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon, { IconName } from "../components/Icon";
 import PrimaryButton from "../components/PrimaryButton";
-import { colors, fonts } from "../theme";
+import { colors, fonts, radius } from "../theme";
 import { s } from "./setup/shared";
 
 const path: { icon?: IconName; num?: string; small: string; text: string }[] = [
@@ -11,12 +11,26 @@ const path: { icon?: IconName; num?: string; small: string; text: string }[] = [
   { icon: "spark", small: "FINISH", text: "Teaching Internship" },
 ];
 
-export default function Welcome({ onStart }: { onStart: () => void }) {
+export default function Welcome({
+  onStart,
+  onSignOut,
+}: {
+  onStart: () => void;
+  onSignOut?: () => void;
+}) {
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.body}>
-        <View style={styles.brand}>
-          <Icon name="compass" size={32} color={colors.white} />
+        <View style={styles.topRow}>
+          <View style={styles.brand}>
+            <Icon name="compass" size={32} color={colors.white} />
+          </View>
+          {onSignOut && (
+            <Pressable style={styles.signOutBtn} onPress={onSignOut}>
+              <Icon name="logout" size={14} color="#e11d48" />
+              <Text style={styles.signOutBtnText}>Sign out</Text>
+            </Pressable>
+          )}
         </View>
 
         <View style={{ gap: 10 }}>
@@ -62,6 +76,11 @@ export default function Welcome({ onStart }: { onStart: () => void }) {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.paper },
   body: { flex: 1, justifyContent: "center", padding: 24, gap: 28 },
+  topRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
   brand: {
     width: 64,
     height: 64,
@@ -69,6 +88,22 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",
+  },
+  signOutBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: radius.pill,
+    backgroundColor: "#fff1f2",
+    borderWidth: 1,
+    borderColor: "#fecdd3",
+  },
+  signOutBtnText: {
+    fontFamily: fonts.bold,
+    fontSize: 12,
+    color: "#e11d48",
   },
   path: { gap: 18, paddingVertical: 4 },
   line: {

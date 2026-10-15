@@ -32,7 +32,8 @@ export default function Step1Profile({
       <Text style={s.kicker}>STUDENT PROFILE</Text>
       <Text style={s.h1}>Let’s personalize your plan</Text>
       <Text style={s.lead}>
-        We’ll use your student profile and academic standing to personalize your BEEd degree trajectory.
+        We’ll use your student profile and academic standing to personalize your
+        BEEd degree trajectory.
       </Text>
 
       {/* Live Profile Preview Badge */}
@@ -62,7 +63,7 @@ export default function Step1Profile({
             style={styles.input}
             value={name}
             onChangeText={setName}
-            placeholder="Enter your full name (e.g. Vanisa Lungay)"
+            placeholder="Enter your full name"
             placeholderTextColor={colors.muted}
             autoCapitalize="words"
             autoCorrect={false}
@@ -79,7 +80,7 @@ export default function Step1Profile({
             style={styles.input}
             value={studentId}
             onChangeText={setStudentId}
-            placeholder="Enter student ID (e.g. 1021322)"
+            placeholder="Enter student ID"
             placeholderTextColor={colors.muted}
             keyboardType="default"
             autoCorrect={false}
@@ -92,8 +93,12 @@ export default function Step1Profile({
       <View style={[s.card, styles.programCard]}>
         <Icon name="book" size={20} color={colors.primary} />
         <View style={{ flex: 1 }}>
-          <Text style={styles.programTitle}>Bachelor of Elementary Education</Text>
-          <Text style={styles.programMeta}>BEEd · Prospectus A.Y. 2025–2026</Text>
+          <Text style={styles.programTitle}>
+            Bachelor of Elementary Education
+          </Text>
+          <Text style={styles.programMeta}>
+            BEEd · Prospectus A.Y. 2025–2026
+          </Text>
         </View>
       </View>
 

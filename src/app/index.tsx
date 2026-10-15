@@ -1,12 +1,11 @@
 import { Redirect } from "expo-router";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import Icon from "../components/Icon";
-import Setup from "../screens/Setup";
 import { useAppState } from "../state/AppState";
 import { colors, fonts } from "../theme";
 
 export default function Index() {
-  const { isLoading, onboarded, finishOnboarding } = useAppState();
+  const { isLoading, currentStudentId, onboarded } = useAppState();
 
   if (isLoading) {
     return (
@@ -25,10 +24,17 @@ export default function Index() {
     );
   }
 
-  if (!onboarded) {
-    return <Setup onFinish={finishOnboarding} />;
+  // If no student is signed in -> redirect to /auth
+  if (!currentStudentId) {
+    return <Redirect href={"/auth" as any} />;
   }
 
+  // If signed in but hasn't finished onboarding -> redirect to /setup
+  if (!onboarded) {
+    return <Redirect href={"/setup" as any} />;
+  }
+
+  // If signed in & finished setup -> redirect to /(tabs)
   return <Redirect href={"/(tabs)" as any} />;
 }
 

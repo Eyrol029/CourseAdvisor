@@ -1,96 +1,64 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { localDatabase } from "./database";
+import {
+  AcademicStanding,
+  DomainConfidence,
+  SavedRoadmap,
+  StudentProfile,
+  StudentRecord,
+} from "../types/storage";
 
-export type StudentProfile = {
-  name: string;
-  studentId: string;
-  degreeProgram: string;
-  institution: string;
-  catalogYear: string;
-};
-
-export type AcademicStanding = {
-  year: 1 | 2 | 3 | 4;
-  semester: "First Semester" | "Second Semester" | "Summer";
-};
-
-export type DomainConfidence = {
-  foundations: number;   // 1 - 10
-  numeracy: number;      // 1 - 10
-  literacy: number;      // 1 - 10
-  professional: number;  // 1 - 10
-};
-
-export type SavedRoadmap = {
-  id: string;
-  name: string;
-  createdAt: string;
-  updatedAt: string;
-  standing: AcademicStanding;
-  terms: {
-    termId: string;
-    label: string;
-    year: number;
-    semester: string;
-    courses: {
-      code: string;
-      title: string;
-      units: number;
-      prerequisites: string[];
-      rationale: string;
-    }[];
-    totalUnits: number;
-    stressCategory: string;
-    stressScore: number;
-  }[];
-};
-
-const KEYS = {
-  PROFILE: "@courseadvisor_profile",
-  COMPLETED: "@courseadvisor_completed",
-  STANDING: "@courseadvisor_standing",
-  CONFIDENCE: "@courseadvisor_confidence",
-  SAVED_ROADMAPS: "@courseadvisor_saved_roadmaps",
-  ONBOARDED: "@courseadvisor_onboarded",
-};
-
-export const defaultProfile: StudentProfile = {
-  name: "Vanisa Lungay",
-  studentId: "1021322",
-  degreeProgram: "Bachelor of Elementary Education",
-  institution: "Mindanao State University at Naawan",
-  catalogYear: "A.Y. 2025–2026",
-};
-
-export const defaultStanding: AcademicStanding = {
-  year: 1,
-  semester: "Second Semester",
-};
-
-export const defaultConfidence: DomainConfidence = {
-  foundations: 7,
-  numeracy: 6,
-  literacy: 8,
-  professional: 7,
-};
+export * from "../types/storage";
 
 /**
  * Offline-first Storage Service.
  * Bridges device SQLite relational database with local storage cache,
- * ensuring 100% offline persistence and instant UI reactivity.
+ * ensuring 100% offline persistence, multi-student isolation, and instant UI reactivity.
  */
 export const storage = {
   async init(): Promise<void> {
     await localDatabase.init();
   },
 
+  async getActiveStudentId(): Promise<string | null> {
+    return await localDatabase.getActiveStudentId();
+  },
+
+  async setActiveStudentId(id: string | null): Promise<void> {
+    await localDatabase.setActiveStudentId(id);
+  },
+
+  async getAllStudents(): Promise<StudentRecord[]> {
+    return await localDatabase.getAllStudents();
+  },
+
+  async findStudent(studentId: string): Promise<StudentRecord | null> {
+    return await localDatabase.findStudent(studentId);
+  },
+
+  async findStudentByNameAndId(
+    name: string,
+    studentId: string
+  ): Promise<StudentRecord | null> {
+    return await localDatabase.findStudentByNameAndId(name, studentId);
+  },
+
+  async createStudent(name: string, studentId: string): Promise<StudentRecord> {
+    return await localDatabase.createStudent(name, studentId);
+  },
+
+  async saveStudentRecord(record: StudentRecord): Promise<void> {
+    await localDatabase.saveStudentRecord(record);
+  },
+
+  async updateStudent(
+    studentId: string,
+    partial: Partial<StudentRecord>
+  ): Promise<StudentRecord | null> {
+    return await localDatabase.updateStudent(studentId, partial);
+  },
+
   async getProfile(): Promise<StudentProfile> {
-    try {
-      return await localDatabase.getProfile();
-    } catch {
-      const data = await AsyncStorage.getItem(KEYS.PROFILE);
-      return data ? JSON.parse(data) : defaultProfile;
-    }
+    return await localDatabase.getProfile();
   },
 
   async setProfile(profile: StudentProfile): Promise<void> {
@@ -98,12 +66,7 @@ export const storage = {
   },
 
   async getStanding(): Promise<AcademicStanding> {
-    try {
-      return await localDatabase.getStanding();
-    } catch {
-      const data = await AsyncStorage.getItem(KEYS.STANDING);
-      return data ? JSON.parse(data) : defaultStanding;
-    }
+    return await localDatabase.getStanding();
   },
 
   async setStanding(standing: AcademicStanding): Promise<void> {
@@ -111,12 +74,7 @@ export const storage = {
   },
 
   async getCompleted(): Promise<string[]> {
-    try {
-      return await localDatabase.getCompletedCourses();
-    } catch {
-      const data = await AsyncStorage.getItem(KEYS.COMPLETED);
-      return data ? JSON.parse(data) : [];
-    }
+    return await localDatabase.getCompletedCourses();
   },
 
   async setCompleted(completedCodes: string[]): Promise<void> {
@@ -124,12 +82,7 @@ export const storage = {
   },
 
   async getConfidence(): Promise<DomainConfidence> {
-    try {
-      return await localDatabase.getConfidence();
-    } catch {
-      const data = await AsyncStorage.getItem(KEYS.CONFIDENCE);
-      return data ? JSON.parse(data) : defaultConfidence;
-    }
+    return await localDatabase.getConfidence();
   },
 
   async setConfidence(confidence: DomainConfidence): Promise<void> {
@@ -137,32 +90,25 @@ export const storage = {
   },
 
   async getSavedRoadmaps(): Promise<SavedRoadmap[]> {
-    try {
-      return await localDatabase.getSavedRoadmaps();
-    } catch {
-      const data = await AsyncStorage.getItem(KEYS.SAVED_ROADMAPS);
-      return data ? JSON.parse(data) : [];
-    }
+    return await localDatabase.getSavedRoadmaps();
   },
 
   async setSavedRoadmaps(roadmaps: SavedRoadmap[]): Promise<void> {
-    await AsyncStorage.setItem(KEYS.SAVED_ROADMAPS, JSON.stringify(roadmaps));
     for (const r of roadmaps) {
       await localDatabase.saveRoadmap(r);
     }
   },
 
   async getOnboarded(): Promise<boolean> {
-    try {
-      const val = await AsyncStorage.getItem(KEYS.ONBOARDED);
-      return val === "true";
-    } catch {
-      return false;
-    }
+    return await localDatabase.getOnboarded();
   },
 
   async setOnboarded(onboarded: boolean): Promise<void> {
-    await AsyncStorage.setItem(KEYS.ONBOARDED, onboarded ? "true" : "false");
+    await localDatabase.setOnboarded(onboarded);
+  },
+
+  async clearSession(): Promise<void> {
+    await localDatabase.setActiveStudentId(null);
   },
 
   async clearAll(): Promise<void> {

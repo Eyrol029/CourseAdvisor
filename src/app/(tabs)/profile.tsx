@@ -1,3 +1,4 @@
+import { router } from "expo-router";
 import { useState } from "react";
 import {
   Alert,
@@ -29,11 +30,23 @@ export default function ProfileScreen() {
     savedRoadmaps,
     deleteRoadmap,
     resetAllData,
+    signOut,
   } = useAppState();
 
   const [showEditProfile, setShowEditProfile] = useState(false);
+  const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
   const [nameInput, setNameInput] = useState(profile.name);
   const [idInput, setIdInput] = useState(profile.studentId);
+
+  const handleSignOut = () => {
+    setShowSignOutConfirm(true);
+  };
+
+  const handleConfirmSignOut = async () => {
+    setShowSignOutConfirm(false);
+    await signOut();
+    router.replace("/auth" as any);
+  };
 
   // Compute progress
   let earnedUnits = 0;
@@ -83,7 +96,10 @@ export default function ProfileScreen() {
     );
   };
 
-  const updateDomainConfidence = (key: keyof DomainConfidence, delta: number) => {
+  const updateDomainConfidence = (
+    key: keyof DomainConfidence,
+    delta: number,
+  ) => {
     const curr = confidence[key];
     const nextVal = Math.max(1, Math.min(10, curr + delta));
     setConfidence({
@@ -97,8 +113,14 @@ export default function ProfileScreen() {
       <ScrollView contentContainerStyle={styles.scroll}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.kicker}>STUDENT PROFILE</Text>
-          <Text style={styles.headerTitle}>Academic Record</Text>
+          <View>
+            <Text style={styles.kicker}>STUDENT PROFILE</Text>
+            <Text style={styles.headerTitle}>Academic Record</Text>
+          </View>
+          <Pressable style={styles.signOutHeaderBtn} onPress={handleSignOut}>
+            <Icon name="logout" size={15} color="#e11d48" />
+            <Text style={styles.signOutHeaderBtnText}>Sign out</Text>
+          </Pressable>
         </View>
 
         {/* Profile Identity Card */}
@@ -115,7 +137,9 @@ export default function ProfileScreen() {
           </View>
           <View style={{ flex: 1 }}>
             <Text style={styles.profileName}>{profile.name}</Text>
-            <Text style={styles.profileId}>Student ID: {profile.studentId}</Text>
+            <Text style={styles.profileId}>
+              Student ID: {profile.studentId}
+            </Text>
             <Text style={styles.profileDegree}>{profile.degreeProgram}</Text>
             <Text style={styles.profileUni}>{profile.institution}</Text>
           </View>
@@ -286,22 +310,41 @@ export default function ProfileScreen() {
 
         {/* Local Relational Database & Offline-First Storage */}
         <View style={styles.sectionCard}>
-          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
             <Text style={styles.sectionTitle}>STORAGE & DATABASE</Text>
             <View style={styles.dbBadge}>
               <View style={styles.dbDot} />
-              <Text style={styles.dbBadgeText}>100% Offline (Local SQLite)</Text>
+              <Text style={styles.dbBadgeText}>
+                100% Offline (Local SQLite)
+              </Text>
             </View>
           </View>
 
-          <Text style={{ fontFamily: fonts.regular, fontSize: 13, color: colors.muted, lineHeight: 18 }}>
-            All curriculum entities, prerequisite DAGs, student progress, and roadmap schedules are stored directly on your device storage without cloud dependency.
+          <Text
+            style={{
+              fontFamily: fonts.regular,
+              fontSize: 13,
+              color: colors.muted,
+              lineHeight: 18,
+            }}
+          >
+            All curriculum entities, prerequisite DAGs, student progress, and
+            roadmap schedules are stored directly on your device storage without
+            cloud dependency.
           </Text>
 
           <View style={styles.dbGrid}>
             <View style={styles.dbGridItem}>
               <Text style={styles.dbGridLabel}>Courses Entity</Text>
-              <Text style={styles.dbGridValue}>{allCourses.length} Registered</Text>
+              <Text style={styles.dbGridValue}>
+                {allCourses.length} Registered
+              </Text>
             </View>
             <View style={styles.dbGridItem}>
               <Text style={styles.dbGridLabel}>Prerequisites</Text>
@@ -316,6 +359,14 @@ export default function ProfileScreen() {
               <Text style={styles.dbGridValue}>Disabled (Private)</Text>
             </View>
           </View>
+        </View>
+
+        {/* Account & Session */}
+        <View style={styles.accountSection}>
+          <Pressable style={styles.signOutBtn} onPress={handleSignOut}>
+            <Icon name="logout" size={17} color="#e11d48" />
+            <Text style={styles.signOutBtnText}>Sign out of CourseAdvisor</Text>
+          </Pressable>
         </View>
 
         {/* System & Storage Reset */}
@@ -343,7 +394,7 @@ export default function ProfileScreen() {
               style={styles.dialogInput}
               value={nameInput}
               onChangeText={setNameInput}
-              placeholder="e.g. Vanisa Lungay"
+              placeholder="e.g. Student Name"
             />
 
             <Text style={styles.inputLabel}>STUDENT ID NUMBER</Text>
@@ -372,6 +423,75 @@ export default function ProfileScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Sign Out Confirmation Modal */}
+      <Modal
+        visible={showSignOutConfirm}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowSignOutConfirm(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.dialogCard}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+              <View
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 22,
+                  backgroundColor: "#fee2e2",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Icon name="logout" size={20} color="#dc2626" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.dialogTitle}>Sign out of CourseAdvisor?</Text>
+                <Text
+                  style={{
+                    fontFamily: fonts.regular,
+                    fontSize: 12,
+                    color: colors.muted,
+                    marginTop: 2,
+                  }}
+                >
+                  Active: {profile.name} ({profile.studentId})
+                </Text>
+              </View>
+            </View>
+
+            <Text
+              style={{
+                fontFamily: fonts.regular,
+                fontSize: 13,
+                lineHeight: 19,
+                color: colors.ink,
+                marginTop: 4,
+              }}
+            >
+              Are you sure you want to sign out? Your academic plan, completed
+              courses, and confidence scores are safely stored on your device and
+              will be restored when you log back in.
+            </Text>
+
+            <View style={styles.dialogButtons}>
+              <Pressable
+                style={[styles.dialogBtn, styles.dialogBtnCancel]}
+                onPress={() => setShowSignOutConfirm(false)}
+              >
+                <Text style={styles.dialogBtnCancelText}>Cancel</Text>
+              </Pressable>
+              <Pressable
+                style={[styles.dialogBtn, { backgroundColor: "#dc2626" }]}
+                onPress={handleConfirmSignOut}
+              >
+                <Text style={styles.dialogBtnSaveText}>Sign out</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -381,6 +501,9 @@ const styles = StyleSheet.create({
   scroll: { padding: 20, gap: 16, paddingBottom: 40 },
   header: {
     paddingVertical: 4,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   kicker: {
     fontFamily: fonts.bold,
@@ -754,5 +877,40 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: colors.ink,
     marginTop: 2,
+  },
+  signOutHeaderBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: radius.pill,
+    backgroundColor: "#fff1f2",
+    borderWidth: 1,
+    borderColor: "#fecdd3",
+  },
+  signOutHeaderBtnText: {
+    fontFamily: fonts.bold,
+    fontSize: 12,
+    color: "#e11d48",
+  },
+  accountSection: {
+    marginTop: 6,
+  },
+  signOutBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    backgroundColor: colors.white,
+    borderWidth: 1.5,
+    borderColor: "#fecdd3",
+    paddingVertical: 14,
+    borderRadius: radius.md,
+  },
+  signOutBtnText: {
+    fontFamily: fonts.bold,
+    fontSize: 14,
+    color: "#e11d48",
   },
 });

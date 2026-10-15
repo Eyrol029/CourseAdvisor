@@ -4,7 +4,7 @@ import { colors } from "../theme";
 
 export type IconName =
   | "arrow" | "book" | "calendar" | "check" | "chevron" | "clock"
-  | "close" | "compass" | "home" | "lock" | "minus" | "plus"
+  | "close" | "compass" | "home" | "lock" | "logout" | "minus" | "plus"
   | "route" | "search" | "spark" | "user" | "warning";
 
 const shapes: Record<IconName, ReactNode> = {
@@ -46,6 +46,13 @@ const shapes: Record<IconName, ReactNode> = {
     <>
       <Rect x="5" y="10" width="14" height="11" rx="2" />
       <Path d="M8 10V7a4 4 0 0 1 8 0v3" />
+    </>
+  ),
+  logout: (
+    <>
+      <Path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+      <Path d="m16 17 5-5-5-5" />
+      <Path d="M21 12H9" />
     </>
   ),
   minus: <Path d="M5 12h14" />,

@@ -1,14 +1,16 @@
 /**
  * CourseAdvisor: Local Relational Database Service (Native iOS & Android SQLite + CTEs)
  * Implements Section 4 (Data Modeling & Storage Strategy) and Section 7 (Offline-First Integrity):
- * - Relational Schema: Courses, Prerequisites, User_Progress, Schedules, User_Profile
+ * - Relational Schema: Courses, Prerequisites, User_Progress, Schedules, User_Profile, Students
  * - Recursive Common Table Expressions (CTEs) for prerequisite chain resolution
  * - 100% Offline, device-local persistence (no cloud dependency)
+ * - Multi-student authentication and isolated per-student data records
  */
 
 import * as SQLite from "expo-sqlite";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { allCourses } from "../data/curriculum";
+import { firstTermCodes } from "../data/status";
 import {
   AcademicStanding,
   defaultConfidence,
@@ -17,7 +19,8 @@ import {
   DomainConfidence,
   SavedRoadmap,
   StudentProfile,
-} from "./storage";
+  StudentRecord,
+} from "../types/storage";
 
 export type CourseEntity = {
   code: string;
@@ -68,6 +71,7 @@ export type CTEResultNode = {
 };
 
 const DB_NAME = "courseadvisor.db";
+const ACTIVE_STUDENT_KEY = "@courseadvisor_active_student_id";
 let dbInstance: SQLite.SQLiteDatabase | null = null;
 let isDbReady = false;
 let initPromise: Promise<SQLite.SQLiteDatabase | null> | null = null;
@@ -159,12 +163,32 @@ export async function getDatabase(): Promise<SQLite.SQLiteDatabase | null> {
           updated_at TEXT
         );
 
+        CREATE TABLE IF NOT EXISTS students (
+          student_id TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          degree_program TEXT NOT NULL DEFAULT 'Bachelor of Elementary Education',
+          institution TEXT NOT NULL DEFAULT 'Mindanao State University at Naawan',
+          catalog_year TEXT NOT NULL DEFAULT 'A.Y. 2025–2026',
+          standing_year INTEGER NOT NULL DEFAULT 1,
+          standing_semester TEXT NOT NULL DEFAULT 'Second Semester',
+          onboarded INTEGER NOT NULL DEFAULT 0,
+          confidence_foundations REAL DEFAULT 7.0,
+          confidence_numeracy REAL DEFAULT 6.0,
+          confidence_literacy REAL DEFAULT 8.0,
+          confidence_professional REAL DEFAULT 7.0,
+          completed_courses_json TEXT DEFAULT '[]',
+          saved_roadmaps_json TEXT DEFAULT '[]',
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        );
+
         CREATE INDEX IF NOT EXISTS idx_prereq_course ON prerequisites(course_id);
         CREATE INDEX IF NOT EXISTS idx_prereq_parent ON prerequisites(prerequisite_course_id);
         CREATE INDEX IF NOT EXISTS idx_progress_completed ON user_progress(is_completed);
       `);
 
       await seedCurriculumIfEmpty(db);
+      await migrateLegacyStudentIfEmpty(db);
 
       isDbReady = true;
       return db;
@@ -219,6 +243,55 @@ async function seedCurriculumIfEmpty(db: SQLite.SQLiteDatabase) {
     }
   } catch (err) {
     console.error("Error seeding curriculum to SQLite:", err);
+  }
+}
+
+async function migrateLegacyStudentIfEmpty(db: SQLite.SQLiteDatabase) {
+  try {
+    const studentCount = await db.getFirstAsync<{ count: number }>(
+      "SELECT count(*) as count FROM students;"
+    );
+    if (studentCount && studentCount.count > 0) return;
+
+    // Check if legacy user_profile exists
+    const legacy = await db.getFirstAsync<any>(
+      "SELECT * FROM user_profile WHERE id = 1;"
+    );
+    if (!legacy || !legacy.student_id) return;
+
+    // Get completed courses
+    const compRows = await db.getAllAsync<{ course_id: string }>(
+      "SELECT course_id FROM user_progress WHERE is_completed = 1;"
+    );
+    const compCodes = compRows ? compRows.map((r) => r.course_id) : [];
+
+    const now = new Date().toISOString();
+    await db.runAsync(
+      `INSERT OR IGNORE INTO students (
+        student_id, name, degree_program, institution, catalog_year,
+        standing_year, standing_semester, onboarded,
+        confidence_foundations, confidence_numeracy, confidence_literacy, confidence_professional,
+        completed_courses_json, saved_roadmaps_json, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+      legacy.student_id,
+      legacy.name,
+      legacy.degree_program || "Bachelor of Elementary Education",
+      legacy.institution || "Mindanao State University at Naawan",
+      legacy.catalog_year || "A.Y. 2025–2026",
+      legacy.standing_year || 1,
+      legacy.standing_semester || "Second Semester",
+      legacy.onboarded || 0,
+      legacy.confidence_foundations ?? 7,
+      legacy.confidence_numeracy ?? 6,
+      legacy.confidence_literacy ?? 8,
+      legacy.confidence_professional ?? 7,
+      JSON.stringify(compCodes),
+      "[]",
+      now,
+      now
+    );
+  } catch {
+    // Legacy migration ignored
   }
 }
 
@@ -371,37 +444,237 @@ function fallbackUnlockedTraversal(sourceCode: string): CTEResultNode[] {
   return result.sort((a, b) => a.depth - b.depth);
 }
 
+function rowToStudentRecord(row: any): StudentRecord {
+  let completed: string[] = [];
+  try {
+    completed = row.completed_courses_json ? JSON.parse(row.completed_courses_json) : [];
+  } catch {
+    completed = [];
+  }
+
+  let savedRoadmaps: SavedRoadmap[] = [];
+  try {
+    savedRoadmaps = row.saved_roadmaps_json ? JSON.parse(row.saved_roadmaps_json) : [];
+  } catch {
+    savedRoadmaps = [];
+  }
+
+  return {
+    studentId: row.student_id,
+    name: row.name,
+    degreeProgram: row.degree_program || "Bachelor of Elementary Education",
+    institution: row.institution || "Mindanao State University at Naawan",
+    catalogYear: row.catalog_year || "A.Y. 2025–2026",
+    standing: {
+      year: (row.standing_year || 1) as 1 | 2 | 3 | 4,
+      semester: (row.standing_semester || "Second Semester") as AcademicStanding["semester"],
+    },
+    completed,
+    confidence: {
+      foundations: row.confidence_foundations ?? 7,
+      numeracy: row.confidence_numeracy ?? 6,
+      literacy: row.confidence_literacy ?? 8,
+      professional: row.confidence_professional ?? 7,
+    },
+    onboarded: Boolean(row.onboarded),
+    savedRoadmaps,
+    createdAt: row.created_at || new Date().toISOString(),
+    updatedAt: row.updated_at || new Date().toISOString(),
+  };
+}
+
 export const localDatabase = {
   async init(): Promise<boolean> {
     const db = await getDatabase();
     return db !== null;
   },
 
-  async getCompletedCourses(): Promise<string[]> {
-    const db = await getDatabase();
-    if (!db) {
-      const raw = await AsyncStorage.getItem("@courseadvisor_completed");
-      return raw ? JSON.parse(raw) : [];
-    }
-
+  async getActiveStudentId(): Promise<string | null> {
     try {
-      const rows = await db.getAllAsync<{ course_id: string }>(
-        "SELECT course_id FROM user_progress WHERE is_completed = 1;"
-      );
-      if (rows && rows.length > 0) {
-        return rows.map((r) => r.course_id);
-      }
-      const raw = await AsyncStorage.getItem("@courseadvisor_completed");
-      return raw ? JSON.parse(raw) : [];
+      return await AsyncStorage.getItem(ACTIVE_STUDENT_KEY);
     } catch {
-      const raw = await AsyncStorage.getItem("@courseadvisor_completed");
-      return raw ? JSON.parse(raw) : [];
+      return null;
     }
   },
 
-  async setCompletedCourses(codes: string[]): Promise<void> {
-    await AsyncStorage.setItem("@courseadvisor_completed", JSON.stringify(codes));
+  async setActiveStudentId(studentId: string | null): Promise<void> {
+    if (studentId) {
+      await AsyncStorage.setItem(ACTIVE_STUDENT_KEY, studentId);
+      // Sync user_progress table for CTEs
+      const student = await this.findStudent(studentId);
+      if (student) {
+        await this.syncUserProgressForStudent(student.completed);
+      }
+    } else {
+      await AsyncStorage.removeItem(ACTIVE_STUDENT_KEY);
+    }
+  },
 
+  async getAllStudents(): Promise<StudentRecord[]> {
+    const db = await getDatabase();
+    if (!db) return [];
+
+    try {
+      const rows = await db.getAllAsync<any>("SELECT * FROM students ORDER BY updated_at DESC;");
+      return rows ? rows.map(rowToStudentRecord) : [];
+    } catch {
+      return [];
+    }
+  },
+
+  async findStudent(studentId: string): Promise<StudentRecord | null> {
+    const db = await getDatabase();
+    if (!db) return null;
+
+    try {
+      const row = await db.getFirstAsync<any>(
+        "SELECT * FROM students WHERE lower(trim(student_id)) = lower(trim(?));",
+        studentId
+      );
+      return row ? rowToStudentRecord(row) : null;
+    } catch {
+      return null;
+    }
+  },
+
+  async findStudentByNameAndId(
+    name: string,
+    studentId: string
+  ): Promise<StudentRecord | null> {
+    const db = await getDatabase();
+    if (!db) return null;
+
+    try {
+      const row = await db.getFirstAsync<any>(
+        "SELECT * FROM students WHERE lower(trim(student_id)) = lower(trim(?)) AND lower(trim(name)) = lower(trim(?));",
+        studentId,
+        name
+      );
+      return row ? rowToStudentRecord(row) : null;
+    } catch {
+      return null;
+    }
+  },
+
+  async createStudent(name: string, studentId: string): Promise<StudentRecord> {
+    const cleanId = studentId.trim();
+    const cleanName = name.trim();
+    const now = new Date().toISOString();
+
+    const newStudent: StudentRecord = {
+      studentId: cleanId,
+      name: cleanName,
+      degreeProgram: "Bachelor of Elementary Education",
+      institution: "Mindanao State University at Naawan",
+      catalogYear: "A.Y. 2025–2026",
+      standing: defaultStanding,
+      completed: [...firstTermCodes],
+      confidence: defaultConfidence,
+      onboarded: false,
+      savedRoadmaps: [],
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    const db = await getDatabase();
+    if (db) {
+      await db.runAsync(
+        `INSERT INTO students (
+          student_id, name, degree_program, institution, catalog_year,
+          standing_year, standing_semester, onboarded,
+          confidence_foundations, confidence_numeracy, confidence_literacy, confidence_professional,
+          completed_courses_json, saved_roadmaps_json, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+        cleanId,
+        cleanName,
+        newStudent.degreeProgram,
+        newStudent.institution,
+        newStudent.catalogYear,
+        newStudent.standing.year,
+        newStudent.standing.semester,
+        0,
+        newStudent.confidence.foundations,
+        newStudent.confidence.numeracy,
+        newStudent.confidence.literacy,
+        newStudent.confidence.professional,
+        JSON.stringify(newStudent.completed),
+        "[]",
+        now,
+        now
+      );
+    }
+
+    await this.setActiveStudentId(cleanId);
+    return newStudent;
+  },
+
+  async saveStudentRecord(record: StudentRecord): Promise<void> {
+    const db = await getDatabase();
+    if (!db) return;
+
+    const now = new Date().toISOString();
+    try {
+      await db.runAsync(
+        `INSERT INTO students (
+          student_id, name, degree_program, institution, catalog_year,
+          standing_year, standing_semester, onboarded,
+          confidence_foundations, confidence_numeracy, confidence_literacy, confidence_professional,
+          completed_courses_json, saved_roadmaps_json, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(student_id) DO UPDATE SET
+          name = excluded.name,
+          degree_program = excluded.degree_program,
+          institution = excluded.institution,
+          catalog_year = excluded.catalog_year,
+          standing_year = excluded.standing_year,
+          standing_semester = excluded.standing_semester,
+          onboarded = excluded.onboarded,
+          confidence_foundations = excluded.confidence_foundations,
+          confidence_numeracy = excluded.confidence_numeracy,
+          confidence_literacy = excluded.confidence_literacy,
+          confidence_professional = excluded.confidence_professional,
+          completed_courses_json = excluded.completed_courses_json,
+          saved_roadmaps_json = excluded.saved_roadmaps_json,
+          updated_at = excluded.updated_at;`,
+        record.studentId,
+        record.name,
+        record.degreeProgram,
+        record.institution,
+        record.catalogYear,
+        record.standing.year,
+        record.standing.semester,
+        record.onboarded ? 1 : 0,
+        record.confidence.foundations,
+        record.confidence.numeracy,
+        record.confidence.literacy,
+        record.confidence.professional,
+        JSON.stringify(record.completed),
+        JSON.stringify(record.savedRoadmaps || []),
+        record.createdAt || now,
+        now
+      );
+    } catch (err) {
+      console.warn("Failed to save student record to SQLite:", err);
+    }
+  },
+
+  async updateStudent(
+    studentId: string,
+    partial: Partial<StudentRecord>
+  ): Promise<StudentRecord | null> {
+    const current = await this.findStudent(studentId);
+    if (!current) return null;
+
+    const updated: StudentRecord = {
+      ...current,
+      ...partial,
+      updatedAt: new Date().toISOString(),
+    };
+    await this.saveStudentRecord(updated);
+    return updated;
+  },
+
+  async syncUserProgressForStudent(completedCodes: string[]): Promise<void> {
     const db = await getDatabase();
     if (!db) return;
 
@@ -409,7 +682,7 @@ export const localDatabase = {
       const now = new Date().toISOString();
       await db.runAsync("UPDATE user_progress SET is_completed = 0, status = 'not_taken';");
 
-      for (const code of codes) {
+      for (const code of completedCodes) {
         await db.runAsync(
           `INSERT INTO user_progress (course_id, status, is_completed, completed_at)
            VALUES (?, 'completed', 1, ?)
@@ -423,8 +696,46 @@ export const localDatabase = {
         );
       }
     } catch (err) {
-      console.warn("Failed to sync completed courses to SQLite:", err);
+      console.warn("Failed to sync user_progress table:", err);
     }
+  },
+
+  // Active student accessors
+  async getActiveStudent(): Promise<StudentRecord | null> {
+    const activeId = await this.getActiveStudentId();
+    if (!activeId) return null;
+    return await this.findStudent(activeId);
+  },
+
+  async getCompletedCourses(): Promise<string[]> {
+    const active = await this.getActiveStudent();
+    if (active) return active.completed;
+
+    const db = await getDatabase();
+    if (!db) {
+      const raw = await AsyncStorage.getItem("@courseadvisor_completed");
+      return raw ? JSON.parse(raw) : [];
+    }
+
+    try {
+      const rows = await db.getAllAsync<{ course_id: string }>(
+        "SELECT course_id FROM user_progress WHERE is_completed = 1;"
+      );
+      if (rows && rows.length > 0) {
+        return rows.map((r) => r.course_id);
+      }
+      return [];
+    } catch {
+      return [];
+    }
+  },
+
+  async setCompletedCourses(codes: string[]): Promise<void> {
+    const activeId = await this.getActiveStudentId();
+    if (activeId) {
+      await this.updateStudent(activeId, { completed: codes });
+    }
+    await this.syncUserProgressForStudent(codes);
   },
 
   async toggleCourseCompletion(code: string, isCompleted: boolean): Promise<void> {
@@ -439,11 +750,19 @@ export const localDatabase = {
   },
 
   async getProfile(): Promise<StudentProfile> {
-    const db = await getDatabase();
-    if (!db) {
-      const raw = await AsyncStorage.getItem("@courseadvisor_profile");
-      return raw ? JSON.parse(raw) : defaultProfile;
+    const active = await this.getActiveStudent();
+    if (active) {
+      return {
+        name: active.name,
+        studentId: active.studentId,
+        degreeProgram: active.degreeProgram,
+        institution: active.institution,
+        catalogYear: active.catalogYear,
+      };
     }
+
+    const db = await getDatabase();
+    if (!db) return defaultProfile;
 
     try {
       const row = await db.getFirstAsync<{
@@ -463,16 +782,23 @@ export const localDatabase = {
           catalogYear: row.catalog_year,
         };
       }
-      const raw = await AsyncStorage.getItem("@courseadvisor_profile");
-      return raw ? JSON.parse(raw) : defaultProfile;
+      return defaultProfile;
     } catch {
-      const raw = await AsyncStorage.getItem("@courseadvisor_profile");
-      return raw ? JSON.parse(raw) : defaultProfile;
+      return defaultProfile;
     }
   },
 
   async setProfile(p: StudentProfile): Promise<void> {
-    await AsyncStorage.setItem("@courseadvisor_profile", JSON.stringify(p));
+    const activeId = await this.getActiveStudentId();
+    if (activeId) {
+      await this.updateStudent(activeId, {
+        name: p.name,
+        studentId: p.studentId,
+        degreeProgram: p.degreeProgram,
+        institution: p.institution,
+        catalogYear: p.catalogYear,
+      });
+    }
 
     const db = await getDatabase();
     if (!db) return;
@@ -501,11 +827,11 @@ export const localDatabase = {
   },
 
   async getStanding(): Promise<AcademicStanding> {
+    const active = await this.getActiveStudent();
+    if (active) return active.standing;
+
     const db = await getDatabase();
-    if (!db) {
-      const raw = await AsyncStorage.getItem("@courseadvisor_standing");
-      return raw ? JSON.parse(raw) : defaultStanding;
-    }
+    if (!db) return defaultStanding;
 
     try {
       const row = await db.getFirstAsync<{
@@ -519,16 +845,17 @@ export const localDatabase = {
           semester: row.standing_semester as AcademicStanding["semester"],
         };
       }
-      const raw = await AsyncStorage.getItem("@courseadvisor_standing");
-      return raw ? JSON.parse(raw) : defaultStanding;
+      return defaultStanding;
     } catch {
-      const raw = await AsyncStorage.getItem("@courseadvisor_standing");
-      return raw ? JSON.parse(raw) : defaultStanding;
+      return defaultStanding;
     }
   },
 
   async setStanding(s: AcademicStanding): Promise<void> {
-    await AsyncStorage.setItem("@courseadvisor_standing", JSON.stringify(s));
+    const activeId = await this.getActiveStudentId();
+    if (activeId) {
+      await this.updateStudent(activeId, { standing: s });
+    }
 
     const db = await getDatabase();
     if (!db) return;
@@ -550,11 +877,11 @@ export const localDatabase = {
   },
 
   async getConfidence(): Promise<DomainConfidence> {
+    const active = await this.getActiveStudent();
+    if (active) return active.confidence;
+
     const db = await getDatabase();
-    if (!db) {
-      const raw = await AsyncStorage.getItem("@courseadvisor_confidence");
-      return raw ? JSON.parse(raw) : defaultConfidence;
-    }
+    if (!db) return defaultConfidence;
 
     try {
       const row = await db.getFirstAsync<{
@@ -579,16 +906,17 @@ export const localDatabase = {
           professional: row.confidence_professional,
         };
       }
-      const raw = await AsyncStorage.getItem("@courseadvisor_confidence");
-      return raw ? JSON.parse(raw) : defaultConfidence;
+      return defaultConfidence;
     } catch {
-      const raw = await AsyncStorage.getItem("@courseadvisor_confidence");
-      return raw ? JSON.parse(raw) : defaultConfidence;
+      return defaultConfidence;
     }
   },
 
   async setConfidence(c: DomainConfidence): Promise<void> {
-    await AsyncStorage.setItem("@courseadvisor_confidence", JSON.stringify(c));
+    const activeId = await this.getActiveStudentId();
+    if (activeId) {
+      await this.updateStudent(activeId, { confidence: c });
+    }
 
     const db = await getDatabase();
     if (!db) return;
@@ -613,12 +941,48 @@ export const localDatabase = {
     }
   },
 
-  async getSavedRoadmaps(): Promise<SavedRoadmap[]> {
+  async getOnboarded(): Promise<boolean> {
+    const active = await this.getActiveStudent();
+    if (active) return active.onboarded;
+
     const db = await getDatabase();
-    if (!db) {
-      const raw = await AsyncStorage.getItem("@courseadvisor_saved_roadmaps");
-      return raw ? JSON.parse(raw) : [];
+    if (!db) return false;
+
+    try {
+      const row = await db.getFirstAsync<{ onboarded: number }>(
+        "SELECT onboarded FROM user_profile WHERE id = 1;"
+      );
+      return row ? Boolean(row.onboarded) : false;
+    } catch {
+      return false;
     }
+  },
+
+  async setOnboarded(onboarded: boolean): Promise<void> {
+    const activeId = await this.getActiveStudentId();
+    if (activeId) {
+      await this.updateStudent(activeId, { onboarded });
+    }
+
+    const db = await getDatabase();
+    if (!db) return;
+
+    try {
+      await db.runAsync(
+        "UPDATE user_profile SET onboarded = ? WHERE id = 1;",
+        onboarded ? 1 : 0
+      );
+    } catch {
+      // Ignored
+    }
+  },
+
+  async getSavedRoadmaps(): Promise<SavedRoadmap[]> {
+    const active = await this.getActiveStudent();
+    if (active) return active.savedRoadmaps || [];
+
+    const db = await getDatabase();
+    if (!db) return [];
 
     try {
       const rows = await db.getAllAsync<{
@@ -644,18 +1008,19 @@ export const localDatabase = {
           terms: JSON.parse(r.plan_json),
         }));
       }
-      const raw = await AsyncStorage.getItem("@courseadvisor_saved_roadmaps");
-      return raw ? JSON.parse(raw) : [];
+      return [];
     } catch {
-      const raw = await AsyncStorage.getItem("@courseadvisor_saved_roadmaps");
-      return raw ? JSON.parse(raw) : [];
+      return [];
     }
   },
 
   async saveRoadmap(roadmap: SavedRoadmap): Promise<void> {
     const all = await this.getSavedRoadmaps();
     const updated = [roadmap, ...all.filter((r) => r.id !== roadmap.id)];
-    await AsyncStorage.setItem("@courseadvisor_saved_roadmaps", JSON.stringify(updated));
+    const activeId = await this.getActiveStudentId();
+    if (activeId) {
+      await this.updateStudent(activeId, { savedRoadmaps: updated });
+    }
 
     const db = await getDatabase();
     if (!db) return;
@@ -686,7 +1051,10 @@ export const localDatabase = {
   async deleteRoadmap(id: string): Promise<void> {
     const all = await this.getSavedRoadmaps();
     const filtered = all.filter((r) => r.id !== id);
-    await AsyncStorage.setItem("@courseadvisor_saved_roadmaps", JSON.stringify(filtered));
+    const activeId = await this.getActiveStudentId();
+    if (activeId) {
+      await this.updateStudent(activeId, { savedRoadmaps: filtered });
+    }
 
     const db = await getDatabase();
     if (!db) return;
@@ -699,24 +1067,6 @@ export const localDatabase = {
   },
 
   async clearAll(): Promise<void> {
-    await AsyncStorage.multiRemove([
-      "@courseadvisor_profile",
-      "@courseadvisor_completed",
-      "@courseadvisor_standing",
-      "@courseadvisor_confidence",
-      "@courseadvisor_saved_roadmaps",
-      "@courseadvisor_onboarded",
-    ]);
-
-    const db = await getDatabase();
-    if (!db) return;
-
-    try {
-      await db.runAsync("DELETE FROM user_progress;");
-      await db.runAsync("DELETE FROM schedules;");
-      await db.runAsync("DELETE FROM user_profile;");
-    } catch (err) {
-      console.warn("Failed to clear SQLite data:", err);
-    }
+    await this.setActiveStudentId(null);
   },
 };
