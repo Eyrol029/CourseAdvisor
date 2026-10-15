@@ -55,7 +55,8 @@ export default function AuthScreen() {
         const res = await signUp(name, studentId);
         if (!res.success) {
           setError(
-            res.error || "This Student ID is already registered. Log in instead."
+            res.error ||
+              "This Student ID is already registered. Log in instead.",
           );
         } else {
           router.replace("/setup" as any);
@@ -103,10 +104,7 @@ export default function AuthScreen() {
           {/* Tab / Segmented Toggle */}
           <View style={styles.tabContainer}>
             <Pressable
-              style={[
-                styles.tabBtn,
-                mode === "login" && styles.tabBtnActive,
-              ]}
+              style={[styles.tabBtn, mode === "login" && styles.tabBtnActive]}
               onPress={() => handleTabChange("login")}
             >
               <Text
@@ -119,10 +117,7 @@ export default function AuthScreen() {
               </Text>
             </Pressable>
             <Pressable
-              style={[
-                styles.tabBtn,
-                mode === "signup" && styles.tabBtnActive,
-              ]}
+              style={[styles.tabBtn, mode === "signup" && styles.tabBtnActive]}
               onPress={() => handleTabChange("signup")}
             >
               <Text
@@ -139,9 +134,7 @@ export default function AuthScreen() {
           {/* Form Card */}
           <View style={styles.card}>
             <Text style={styles.cardHeader}>
-              {mode === "login"
-                ? "Welcome back"
-                : "Create student account"}
+              {mode === "login" ? "Welcome back" : "Create student account"}
             </Text>
             <Text style={styles.cardLead}>
               {mode === "login"
@@ -157,29 +150,27 @@ export default function AuthScreen() {
                   <Text style={styles.errorText}>{error}</Text>
                 </View>
 
-                {mode === "login" &&
-                  error.includes("No account found") && (
-                    <Pressable
-                      style={styles.switchPromptBtn}
-                      onPress={handleSwitchToSignUp}
-                    >
-                      <Text style={styles.switchPromptBtnText}>
-                        Sign up instead →
-                      </Text>
-                    </Pressable>
-                  )}
+                {mode === "login" && error.includes("No account found") && (
+                  <Pressable
+                    style={styles.switchPromptBtn}
+                    onPress={handleSwitchToSignUp}
+                  >
+                    <Text style={styles.switchPromptBtnText}>
+                      Sign up instead →
+                    </Text>
+                  </Pressable>
+                )}
 
-                {mode === "signup" &&
-                  error.includes("already registered") && (
-                    <Pressable
-                      style={styles.switchPromptBtn}
-                      onPress={handleSwitchToLogin}
-                    >
-                      <Text style={styles.switchPromptBtnText}>
-                        Log in instead →
-                      </Text>
-                    </Pressable>
-                  )}
+                {mode === "signup" && error.includes("already registered") && (
+                  <Pressable
+                    style={styles.switchPromptBtn}
+                    onPress={handleSwitchToLogin}
+                  >
+                    <Text style={styles.switchPromptBtnText}>
+                      Log in instead →
+                    </Text>
+                  </Pressable>
+                )}
               </View>
             )}
 
@@ -195,7 +186,7 @@ export default function AuthScreen() {
                     setName(val);
                     if (error) setError(null);
                   }}
-                  placeholder="e.g. Maria Santos"
+                  placeholder="e.g. Student Name"
                   placeholderTextColor={colors.muted}
                   autoCapitalize="words"
                   autoCorrect={false}
@@ -215,7 +206,7 @@ export default function AuthScreen() {
                     setStudentId(val);
                     if (error) setError(null);
                   }}
-                  placeholder="e.g. 2024-00123"
+                  placeholder="e.g 1021055"
                   placeholderTextColor={colors.muted}
                   autoCapitalize="none"
                   autoCorrect={false}
