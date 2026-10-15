@@ -12,7 +12,11 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "../../components/Icon";
-import { allCourses, curriculum } from "../../data/curriculum";
+import {
+  allCourses,
+  curriculum,
+  getPriorCourseCodesForStanding,
+} from "../../data/curriculum";
 import { fuzzySystem } from "../../services/fuzzyInference";
 import { DomainConfidence } from "../../services/storage";
 import { useAppState } from "../../state/AppState";
@@ -27,9 +31,9 @@ export default function ProfileScreen() {
     confidence,
     setConfidence,
     completed,
+    setCompleted,
     savedRoadmaps,
     deleteRoadmap,
-    resetAllData,
     signOut,
   } = useAppState();
 
@@ -79,21 +83,27 @@ export default function ProfileScreen() {
     setShowEditProfile(false);
   };
 
-  const handleResetData = () => {
-    Alert.alert(
-      "Reset All Academic Data",
-      "Are you sure you want to clear your completed courses, saved plans, and return to onboarding? This action cannot be undone.",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Reset Everything",
-          style: "destructive",
-          onPress: async () => {
-            await resetAllData();
-          },
-        },
-      ],
-    );
+  const priorCodesForStanding = getPriorCourseCodesForStanding(
+    standing.year,
+    standing.semester,
+  );
+  const missingPriorCourses = priorCodesForStanding.filter(
+    (code) => !completed.has(code),
+  );
+
+  const handleYearSelect = (y: 1 | 2 | 3 | 4) => {
+    setStanding({
+      ...standing,
+      year: y,
+    });
+    const prior = getPriorCourseCodesForStanding(y, standing.semester);
+    const next = new Set([...completed, ...prior]);
+    setCompleted(next);
+  };
+
+  const handleSyncPriorCourses = () => {
+    const next = new Set([...completed, ...priorCodesForStanding]);
+    setCompleted(next);
   };
 
   const updateDomainConfidence = (
@@ -175,12 +185,7 @@ export default function ProfileScreen() {
             {[1, 2, 3, 4].map((y) => (
               <Pressable
                 key={y}
-                onPress={() =>
-                  setStanding({
-                    ...standing,
-                    year: y as 1 | 2 | 3 | 4,
-                  })
-                }
+                onPress={() => handleYearSelect(y as 1 | 2 | 3 | 4)}
                 style={[
                   styles.yearChoiceBtn,
                   standing.year === y && styles.yearChoiceBtnActive,
@@ -197,6 +202,20 @@ export default function ProfileScreen() {
               </Pressable>
             ))}
           </View>
+
+          {/* Sync missing prior courses banner if any */}
+          {missingPriorCourses.length > 0 && (
+            <Pressable
+              style={styles.syncPriorBanner}
+              onPress={handleSyncPriorCourses}
+            >
+              <Icon name="spark" size={15} color={colors.primary} />
+              <Text style={styles.syncPriorBannerText}>
+                Auto-complete {missingPriorCourses.length} prior subjects for Year{" "}
+                {standing.year}
+              </Text>
+            </Pressable>
+          )}
         </View>
 
         {/* Degree Progress Summary */}
@@ -369,13 +388,6 @@ export default function ProfileScreen() {
           </Pressable>
         </View>
 
-        {/* System & Storage Reset */}
-        <View style={styles.dangerSection}>
-          <Pressable style={styles.resetBtn} onPress={handleResetData}>
-            <Icon name="warning" size={16} color="#dc3545" />
-            <Text style={styles.resetBtnText}>Reset All Application Data</Text>
-          </Pressable>
-        </View>
       </ScrollView>
 
       {/* Edit Profile Modal */}
@@ -433,7 +445,9 @@ export default function ProfileScreen() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.dialogCard}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+            <View
+              style={{ flexDirection: "row", alignItems: "center", gap: 12 }}
+            >
               <View
                 style={{
                   width: 44,
@@ -447,7 +461,9 @@ export default function ProfileScreen() {
                 <Icon name="logout" size={20} color="#dc2626" />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.dialogTitle}>Sign out of CourseAdvisor?</Text>
+                <Text style={styles.dialogTitle}>
+                  Sign out of CourseAdvisor?
+                </Text>
                 <Text
                   style={{
                     fontFamily: fonts.regular,
@@ -471,8 +487,8 @@ export default function ProfileScreen() {
               }}
             >
               Are you sure you want to sign out? Your academic plan, completed
-              courses, and confidence scores are safely stored on your device and
-              will be restored when you log back in.
+              courses, and confidence scores are safely stored on your device
+              and will be restored when you log back in.
             </Text>
 
             <View style={styles.dialogButtons}>
@@ -633,6 +649,24 @@ const styles = StyleSheet.create({
   yearChoiceTextActive: {
     color: colors.white,
   },
+  syncPriorBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: "#eff6ff",
+    borderRadius: radius.sm,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: "#bfdbfe",
+    marginTop: 4,
+  },
+  syncPriorBannerText: {
+    fontFamily: fonts.bold,
+    fontSize: 12,
+    color: colors.primary,
+    flex: 1,
+  },
   metricGrid: {
     flexDirection: "row",
     gap: 8,
@@ -750,25 +784,7 @@ const styles = StyleSheet.create({
   deletePlanBtn: {
     padding: 6,
   },
-  dangerSection: {
-    paddingTop: 8,
-  },
-  resetBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    padding: 14,
-    borderRadius: radius.md,
-    backgroundColor: "#fde8e8",
-    borderWidth: 1,
-    borderColor: "#f8b4b4",
-  },
-  resetBtnText: {
-    fontFamily: fonts.bold,
-    fontSize: 13,
-    color: "#dc3545",
-  },
+
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.5)",

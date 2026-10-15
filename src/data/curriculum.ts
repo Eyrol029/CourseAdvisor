@@ -139,3 +139,37 @@ export const curriculumUnits = curriculum.reduce((sum, term) => sum + term.total
 
 export const unlocksFor = (code: string) =>
   allCourses.filter((course) => course.prerequisites.includes(code)).map((course) => course.code);
+
+export function getTermIndexForStanding(year: number, semester: string): number {
+  const foundIndex = curriculum.findIndex(
+    (t) => t.year === year && t.semester === semester,
+  );
+  if (foundIndex !== -1) return foundIndex;
+
+  // Fallbacks for edge cases
+  if (year === 1) return semester === "Summer" ? 2 : 0;
+  if (year === 2) return semester === "Summer" ? 4 : 2;
+  if (year === 3) return semester === "Summer" ? 7 : 5;
+  if (year >= 4) return semester === "Summer" ? 10 : 8;
+  return 0;
+}
+
+export function getPriorCourseCodesForStanding(
+  year: number,
+  semester: string,
+): string[] {
+  const targetIndex = getTermIndexForStanding(year, semester);
+  const codes: string[] = [];
+  for (let i = 0; i < targetIndex && i < curriculum.length; i++) {
+    for (const course of curriculum[i].courses) {
+      codes.push(course.code);
+    }
+  }
+  return codes;
+}
+
+export function getTermIdForStanding(year: number, semester: string): string {
+  const targetIndex = getTermIndexForStanding(year, semester);
+  const safeIndex = Math.min(targetIndex, curriculum.length - 1);
+  return curriculum[safeIndex]?.id ?? "y1s1";
+}

@@ -11,7 +11,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "../components/Icon";
 import PrimaryButton from "../components/PrimaryButton";
-import { firstTermCodes } from "../data/status";
+import { getPriorCourseCodesForStanding } from "../data/curriculum";
 import {
   AcademicStanding,
   DomainConfidence,
@@ -57,8 +57,8 @@ export default function Setup({
   const [semester, setSemester] = useState<
     "First Semester" | "Second Semester" | "Summer"
   >("Second Semester");
-  const [completed, setCompleted] = useState<Set<string>>(
-    new Set(firstTermCodes),
+  const [completed, setCompleted] = useState<Set<string>>(() =>
+    new Set(getPriorCourseCodesForStanding(1, "Second Semester")),
   );
   const [confidence, setConfidence] = useState<DomainConfidence>({
     foundations: 7,
@@ -171,6 +171,21 @@ export default function Setup({
     setCompleted(next);
   };
 
+  const handleYearChange = (newYear: number) => {
+    const y = newYear as 1 | 2 | 3 | 4;
+    setYear(y);
+    setCompleted(new Set(getPriorCourseCodesForStanding(y, semester)));
+  };
+
+  const handleSemesterChange = (newSemester: string) => {
+    const s = newSemester as
+      | "First Semester"
+      | "Second Semester"
+      | "Summer";
+    setSemester(s);
+    setCompleted(new Set(getPriorCourseCodesForStanding(year, s)));
+  };
+
   const next = () => {
     if (step === 1) {
       setProfile({
@@ -178,6 +193,11 @@ export default function Setup({
         name: name.trim() || profile.name,
         studentId: studentId.trim() || profile.studentId,
       });
+      setStep(step + 1);
+    } else if (step === 3) {
+      // Transitioning to Step 4: Ensure all prior subjects for this standing are loaded
+      const prior = getPriorCourseCodesForStanding(year, semester);
+      setCompleted(new Set(prior));
       setStep(step + 1);
     } else if (step === 7) {
       onFinish(completed, { year, semester }, confidence, {
@@ -236,11 +256,9 @@ export default function Setup({
         {step === 3 && (
           <Step3Standing
             year={year}
-            setYear={(y) => setYear(y as 1 | 2 | 3 | 4)}
+            setYear={handleYearChange}
             semester={semester}
-            setSemester={(s) =>
-              setSemester(s as "First Semester" | "Second Semester" | "Summer")
-            }
+            setSemester={handleSemesterChange}
           />
         )}
         {step === 4 && (

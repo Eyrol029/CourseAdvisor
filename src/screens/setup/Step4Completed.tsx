@@ -1,7 +1,11 @@
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Icon from "../../components/Icon";
-import { curriculum } from "../../data/curriculum";
+import {
+  curriculum,
+  getPriorCourseCodesForStanding,
+  getTermIdForStanding,
+} from "../../data/curriculum";
 import { colors, fonts, radius } from "../../theme";
 import { s } from "./shared";
 
@@ -18,7 +22,9 @@ export default function Step4Completed({
   year: number;
   semester: string;
 }) {
-  const [selectedTermId, setSelectedTermId] = useState<string>("y1s1");
+  const [selectedTermId, setSelectedTermId] = useState<string>(() =>
+    getTermIdForStanding(year, semester),
+  );
 
   // Calculate completed units
   let completedUnits = 0;
@@ -32,31 +38,7 @@ export default function Step4Completed({
 
   // Quick action: Complete all prior terms based on standing
   const markPriorCompleted = () => {
-    const priorCodes: string[] = [];
-    const termOrder = ["y1s1", "y1s2", "y2s1", "y2s2", "y2su", "y3s1", "y3s2", "y3su", "y4s1", "y4s2"];
-    
-    // Find index of current standing
-    let targetIndex = 0;
-    if (year === 1 && semester === "First Semester") targetIndex = 0;
-    else if (year === 1 && semester === "Second Semester") targetIndex = 1;
-    else if (year === 2 && semester === "First Semester") targetIndex = 2;
-    else if (year === 2 && semester === "Second Semester") targetIndex = 3;
-    else if (year === 2 && semester === "Summer") targetIndex = 4;
-    else if (year === 3 && semester === "First Semester") targetIndex = 5;
-    else if (year === 3 && semester === "Second Semester") targetIndex = 6;
-    else if (year === 3 && semester === "Summer") targetIndex = 7;
-    else if (year === 4 && semester === "First Semester") targetIndex = 8;
-    else targetIndex = 9;
-
-    for (let i = 0; i < targetIndex; i++) {
-      const t = curriculum.find((x) => x.id === termOrder[i]);
-      if (t) {
-        for (const c of t.courses) {
-          priorCodes.push(c.code);
-        }
-      }
-    }
-
+    const priorCodes = getPriorCourseCodesForStanding(year, semester);
     onBatchSelect(priorCodes, true);
   };
 
