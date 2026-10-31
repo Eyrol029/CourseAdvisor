@@ -15,7 +15,7 @@ export default function PrimaryButton({
       style={({ pressed }) => [styles.btn, pressed && { opacity: 0.85 }]}
     >
       <Text style={styles.text}>{label}</Text>
-      <Icon name="arrow" size={18} color={colors.white} />
+      <Icon name="arrow" size={18} color={colors.accent} />
     </Pressable>
   );
 }

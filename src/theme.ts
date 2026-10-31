@@ -1,13 +1,15 @@
 export const colors = {
-  primary: "#31487a",
-  deep: "#1e2e4f",
-  mint: "#d9e1f1",
-  accent: "#8fb3e2",
-  ink: "#192338",
-  muted: "#5f6f90",
-  line: "#d9e1f1",
-  paper: "#fbfcff",
-  white: "#ffffff",
+  primary: "#0B1F4B",
+  deep: "#071433",
+  mint: "#E9EEF7",
+  accent: "#FFC72C",
+  goldSoft: "#FFF6D6",
+  goldBorder: "#FFE082",
+  ink: "#0B1F4B",
+  muted: "#526384",
+  line: "#D8E0EE",
+  paper: "#F7F9FC",
+  white: "#FFFFFF",
 };
 
 export const fonts = {

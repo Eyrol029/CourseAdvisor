@@ -107,12 +107,7 @@ export default function Step4Completed({
                   doneCount === term.courses.length && styles.chipDotDone,
                 ]}
               >
-                <Text
-                  style={[
-                    styles.chipDotText,
-                    isSelected && { color: colors.white },
-                  ]}
-                >
+                <Text style={styles.chipDotText}>
                   {doneCount}/{term.courses.length}
                 </Text>
               </View>
@@ -145,7 +140,7 @@ export default function Step4Completed({
               style={[styles.courseRow, isDone && styles.courseRowDone]}
             >
               <View style={[styles.checkbox, isDone && styles.checkboxDone]}>
-                {isDone && <Icon name="check" size={14} color={colors.white} />}
+                {isDone && <Icon name="check" size={14} color={colors.accent} />}
               </View>
 
               <View style={{ flex: 1 }}>
@@ -186,7 +181,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bold,
     fontSize: 10,
     letterSpacing: 1.2,
-    color: colors.mint,
+    color: colors.accent,
     marginTop: 4,
   },
   statDivider: { width: 1, height: 32, backgroundColor: "rgba(255,255,255,0.2)" },
@@ -194,7 +189,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    backgroundColor: colors.mint,
+    backgroundColor: colors.goldSoft,
     padding: 12,
     borderRadius: radius.sm,
     borderWidth: 1,
@@ -203,7 +198,7 @@ const styles = StyleSheet.create({
   quickFillText: {
     fontFamily: fonts.medium,
     fontSize: 13,
-    color: colors.deep,
+    color: colors.primary,
     flex: 1,
   },
   termScroll: {
@@ -290,7 +285,7 @@ const styles = StyleSheet.create({
     borderColor: colors.line,
   },
   courseRowDone: {
-    backgroundColor: "#f4f7fc",
+    backgroundColor: colors.goldSoft,
     borderColor: colors.accent,
   },
   checkbox: {

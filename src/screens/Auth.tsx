@@ -90,7 +90,7 @@ export default function AuthScreen() {
           {/* Header & Brand */}
           <View style={styles.brandContainer}>
             <View style={styles.brandIcon}>
-              <Icon name="compass" size={34} color={colors.white} />
+              <Icon name="compass" size={34} color={colors.accent} />
             </View>
             <Text style={styles.appName}>CourseAdvisor</Text>
             <Text style={styles.appSubtitle}>
@@ -225,7 +225,7 @@ export default function AuthScreen() {
               disabled={submitting}
             >
               {submitting ? (
-                <ActivityIndicator size="small" color={colors.white} />
+                <ActivityIndicator size="small" color={colors.accent} />
               ) : (
                 <>
                   <Text style={styles.submitBtnText}>
@@ -233,7 +233,7 @@ export default function AuthScreen() {
                       ? "Log in to CourseAdvisor"
                       : "Create Account & Start"}
                   </Text>
-                  <Icon name="arrow" size={18} color={colors.white} />
+                  <Icon name="arrow" size={18} color={colors.accent} />
                 </>
               )}
             </Pressable>
@@ -271,6 +271,8 @@ const styles = StyleSheet.create({
     height: 68,
     borderRadius: 22,
     backgroundColor: colors.primary,
+    borderWidth: 2,
+    borderColor: colors.accent,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 12,
@@ -322,7 +324,7 @@ const styles = StyleSheet.create({
     color: colors.muted,
   },
   tabTextActive: {
-    color: colors.white,
+    color: colors.accent,
   },
   card: {
     backgroundColor: colors.white,

@@ -131,7 +131,7 @@ export default function Step6Confidence({
       {/* Fuzzy Inference Live Preview */}
       <View style={styles.fuzzyPreview}>
         <View style={styles.previewHead}>
-          <Icon name="spark" size={18} color={colors.white} />
+          <Icon name="spark" size={18} color={colors.accent} />
           <Text style={styles.previewTitle}>Mamdani Fuzzy Workload Estimation</Text>
         </View>
         <Text style={styles.previewScore}>
@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: "#f4f7fc",
+    backgroundColor: colors.mint,
     borderRadius: radius.sm,
     padding: 6,
   },
@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
     color: colors.muted,
   },
   fuzzyPreview: {
-    backgroundColor: colors.deep,
+    backgroundColor: colors.primary,
     borderRadius: radius.md,
     padding: 16,
     gap: 8,

@@ -47,7 +47,7 @@ export default function Step5Prerequisites({
 
       {/* DAG Integrity Card */}
       <View style={styles.dagBanner}>
-        <Icon name="check" size={18} color={colors.white} />
+        <Icon name="check" size={18} color={colors.accent} />
         <View style={{ flex: 1 }}>
           <Text style={styles.dagTitle}>Directed Acyclic Graph (DAG) Verified</Text>
           <Text style={styles.dagSub}>
@@ -60,7 +60,7 @@ export default function Step5Prerequisites({
 
       {/* Status Metrics */}
       <View style={styles.statusGrid}>
-        <View style={[styles.statusBox, { backgroundColor: "#eef3fb" }]}>
+        <View style={[styles.statusBox, { backgroundColor: colors.mint }]}>
           <Text style={[styles.statusNum, { color: colors.primary }]}>{completedCount}</Text>
           <Text style={styles.statusLabel}>COMPLETED</Text>
         </View>
@@ -68,8 +68,8 @@ export default function Step5Prerequisites({
           <Text style={[styles.statusNum, { color: "#1e7e34" }]}>{availableCount}</Text>
           <Text style={styles.statusLabel}>AVAILABLE</Text>
         </View>
-        <View style={[styles.statusBox, { backgroundColor: "#fff4e5" }]}>
-          <Text style={[styles.statusNum, { color: "#b76e00" }]}>{blockedCount}</Text>
+        <View style={[styles.statusBox, { backgroundColor: colors.goldSoft }]}>
+          <Text style={[styles.statusNum, { color: colors.primary }]}>{blockedCount}</Text>
           <Text style={styles.statusLabel}>BLOCKED</Text>
         </View>
       </View>
@@ -121,7 +121,12 @@ export default function Step5Prerequisites({
                 : styles.badgeBlocked,
             ]}
           >
-            <Text style={styles.badgeText}>
+            <Text
+              style={[
+                styles.badgeText,
+                eligibility.isCompleted && { color: colors.accent },
+              ]}
+            >
               {eligibility.isCompleted
                 ? "Completed"
                 : eligibility.isEligible
@@ -247,7 +252,7 @@ const styles = StyleSheet.create({
   },
   gatewayChipDone: {
     borderColor: colors.accent,
-    backgroundColor: colors.mint,
+    backgroundColor: colors.goldSoft,
   },
   gatewayChipText: {
     fontFamily: fonts.bold,
@@ -272,7 +277,7 @@ const styles = StyleSheet.create({
   },
   badgeCompleted: { backgroundColor: colors.primary },
   badgeEligible: { backgroundColor: "#d4edda" },
-  badgeBlocked: { backgroundColor: "#fff3cd" },
+  badgeBlocked: { backgroundColor: colors.goldSoft },
   badgeText: { fontFamily: fonts.bold, fontSize: 11, color: colors.ink },
   chainSection: {
     gap: 8,
@@ -321,7 +326,7 @@ const styles = StyleSheet.create({
   unlockChip: {
     padding: 8,
     borderRadius: radius.sm,
-    backgroundColor: "#f4f7fc",
+    backgroundColor: colors.paper,
     borderWidth: 1,
     borderColor: colors.line,
   },

@@ -259,7 +259,7 @@ export default function RoadmapScreen() {
             style={[styles.actionIconBtn, { backgroundColor: colors.primary }]}
             onPress={() => setShowSaveModal(true)}
           >
-            <Icon name="check" size={18} color={colors.white} />
+            <Icon name="check" size={18} color={colors.accent} />
           </Pressable>
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>{getInitials(profile.name)}</Text>
@@ -490,7 +490,7 @@ export default function RoadmapScreen() {
           <View style={styles.legendRow}>
             <View style={styles.legendItem}>
               <View
-                style={[styles.legendDot, { backgroundColor: colors.ink }]}
+                style={[styles.legendDot, { backgroundColor: colors.primary }]}
               />
               <Text style={styles.legendText}>Completed</Text>
             </View>
@@ -504,7 +504,7 @@ export default function RoadmapScreen() {
 
             <View style={styles.legendItem}>
               <View
-                style={[styles.legendDot, { backgroundColor: colors.deep }]}
+                style={[styles.legendDot, { backgroundColor: colors.muted }]}
               />
               <Text style={styles.legendText}>Prerequisite required</Text>
             </View>
@@ -594,7 +594,7 @@ export default function RoadmapScreen() {
 
                       const dy = y2 - y1;
                       const isDone = completed.has(edge.from);
-                      const strokeColor = isDone ? "#31487A" : "#64748B";
+                      const strokeColor = isDone ? colors.primary : "#64748B";
 
                       // Smooth Bezier Curve Path
                       const pathData = `M ${x1} ${y1} C ${x1} ${y1 + dy * 0.45}, ${x2} ${y2 - dy * 0.45}, ${x2} ${y2}`;
@@ -621,7 +621,7 @@ export default function RoadmapScreen() {
                       const y2 = pTo.y;
 
                       const isDone = completed.has(edge.from);
-                      const strokeColor = isDone ? "#31487A" : "#64748B";
+                      const strokeColor = isDone ? colors.primary : "#64748B";
 
                       return (
                         <Circle
@@ -693,7 +693,7 @@ export default function RoadmapScreen() {
                             <Text
                               style={[
                                 styles.nodeStatusText,
-                                isDone && { color: colors.white },
+                                isDone && { color: colors.accent },
                               ]}
                             >
                               {isDone ? "✓ Done" : statusBadge}
@@ -1030,14 +1030,14 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: colors.mint,
+    backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",
   },
   avatarText: {
     fontFamily: fonts.bold,
     fontSize: 15,
-    color: colors.primary,
+    color: colors.accent,
   },
   avatarDot: {
     position: "absolute",
@@ -1052,7 +1052,7 @@ const styles = StyleSheet.create({
   },
   segmentedContainer: {
     flexDirection: "row",
-    backgroundColor: "#e8eff7",
+    backgroundColor: colors.mint,
     marginHorizontal: 20,
     marginTop: 14,
     borderRadius: 14,
@@ -1065,7 +1065,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   segmentBtnActive: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.primary,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
@@ -1079,7 +1079,7 @@ const styles = StyleSheet.create({
   },
   segmentTextActive: {
     fontFamily: fonts.bold,
-    color: colors.ink,
+    color: colors.accent,
   },
   planScroll: {
     padding: 20,
@@ -1141,7 +1141,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    backgroundColor: colors.mint,
+    backgroundColor: colors.goldSoft,
+    borderWidth: 1,
+    borderColor: colors.goldBorder,
     padding: 10,
     borderRadius: radius.sm,
   },
@@ -1149,7 +1151,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontFamily: fonts.medium,
     fontSize: 11,
-    color: colors.deep,
+    color: colors.primary,
   },
   reorderResetText: {
     fontFamily: fonts.bold,
@@ -1174,14 +1176,14 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: colors.mint,
+    backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",
   },
   termNumberText: {
     fontFamily: fonts.bold,
     fontSize: 15,
-    color: colors.deep,
+    color: colors.accent,
   },
   termKicker: {
     fontFamily: fonts.bold,
@@ -1288,7 +1290,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     paddingVertical: 3,
     borderRadius: 4,
-    backgroundColor: "#e8effe",
+    backgroundColor: colors.mint,
   },
   moveBtnText: {
     fontFamily: fonts.bold,
@@ -1299,12 +1301,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 7,
     paddingVertical: 3,
     borderRadius: 6,
-    backgroundColor: "#dbe8fa",
+    backgroundColor: colors.accent,
   },
   recBadgeText: {
     fontFamily: fonts.bold,
     fontSize: 9,
-    color: "#274b87",
+    color: colors.primary,
   },
   doneBadge: {
     backgroundColor: "#d4edda",
@@ -1387,7 +1389,7 @@ const styles = StyleSheet.create({
   },
   dagNodeDone: {
     borderColor: colors.accent,
-    backgroundColor: "#f7faff",
+    backgroundColor: colors.goldSoft,
   },
   dagNodeHeader: {
     flexDirection: "row",
@@ -1411,10 +1413,10 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   nodeStatusRec: {
-    backgroundColor: "#dbe8fa",
+    backgroundColor: colors.accent,
   },
   nodeStatusReq: {
-    backgroundColor: "#eef2f7",
+    backgroundColor: colors.mint,
   },
   nodeStatusDone: {
     backgroundColor: colors.primary,
@@ -1422,7 +1424,7 @@ const styles = StyleSheet.create({
   nodeStatusText: {
     fontFamily: fonts.bold,
     fontSize: 8,
-    color: colors.deep,
+    color: colors.primary,
   },
   dagNodeCode: {
     fontFamily: fonts.bold,
@@ -1521,11 +1523,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 12,
     borderRadius: radius.sm,
-    backgroundColor: "#f4f7fc",
+    backgroundColor: colors.paper,
     marginBottom: 8,
   },
   termSelectRowCurrent: {
-    backgroundColor: colors.mint,
+    backgroundColor: colors.goldSoft,
     borderWidth: 1,
     borderColor: colors.accent,
   },
@@ -1665,7 +1667,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    backgroundColor: "#f4f7fc",
+    backgroundColor: colors.paper,
     padding: 6,
     borderRadius: 6,
   },

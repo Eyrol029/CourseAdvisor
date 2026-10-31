@@ -11,7 +11,7 @@ export default function Index() {
     return (
       <View style={styles.loadingContainer}>
         <View style={styles.brand}>
-          <Icon name="compass" size={36} color={colors.white} />
+          <Icon name="compass" size={36} color={colors.accent} />
         </View>
         <Text style={styles.loadingTitle}>CourseAdvisor</Text>
         <Text style={styles.loadingSub}>Loading BEEd Curriculum...</Text>
@@ -51,6 +51,8 @@ const styles = StyleSheet.create({
     height: 64,
     borderRadius: 20,
     backgroundColor: colors.primary,
+    borderWidth: 2,
+    borderColor: colors.accent,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 8,

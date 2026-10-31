@@ -37,7 +37,7 @@ export default function Step2Curriculum() {
 
       <View style={styles.total}>
         <View style={styles.totalIcon}>
-          <Icon name="book" size={21} color={colors.white} />
+          <Icon name="book" size={21} color={colors.primary} />
         </View>
         <View style={{ flex: 1 }}>
           <Text style={styles.totalSmall}>OFFICIAL PROGRAM TOTAL</Text>
@@ -75,13 +75,13 @@ const styles = StyleSheet.create({
     gap: 12,
     padding: 14,
     borderRadius: radius.md,
-    backgroundColor: colors.deep,
+    backgroundColor: colors.primary,
   },
   totalIcon: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.accent,
     alignItems: "center",
     justifyContent: "center",
   },

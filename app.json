@@ -29,13 +29,16 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
+          "backgroundColor": "#0B1F4B",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
       ],
       "expo-font",
-      "expo-sqlite"
+      "expo-sqlite",
+      "expo-image",
+      "expo-status-bar",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,
@@ -47,6 +50,12 @@
         "projectId": "f863454a-816a-49c1-9b26-ec8acce27769"
       }
     },
-    "owner": "eyrol029"
+    "owner": "eyrol029",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/f863454a-816a-49c1-9b26-ec8acce27769"
+    }
   }
 }

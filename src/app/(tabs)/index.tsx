@@ -1,12 +1,12 @@
 import { router } from "expo-router";
 import { useState } from "react";
 import {
-  Modal,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
+    Modal,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "../../components/Icon";
@@ -68,7 +68,15 @@ export default function HomeDashboard() {
             <Text style={styles.welcomeKicker}>WELCOME BACK</Text>
             <Text style={styles.studentName}>{profile.name}</Text>
             <Text style={styles.studentMeta}>
-              {profile.degreeProgram} · {standing.year === 1 ? "1st" : standing.year === 2 ? "2nd" : standing.year === 3 ? "3rd" : "4th"} Year, {standing.semester}
+              {profile.degreeProgram} ·{" "}
+              {standing.year === 1
+                ? "1st"
+                : standing.year === 2
+                  ? "2nd"
+                  : standing.year === 3
+                    ? "3rd"
+                    : "4th"}{" "}
+              Year, {standing.semester}
             </Text>
           </View>
         </View>
@@ -78,7 +86,9 @@ export default function HomeDashboard() {
           <View style={styles.cardHeader}>
             <View>
               <Text style={styles.cardKicker}>DEGREE PROGRESS</Text>
-              <Text style={styles.cardTitle}>Bachelor of Elementary Education</Text>
+              <Text style={styles.cardTitle}>
+                Bachelor of Elementary Education
+              </Text>
             </View>
             <View style={styles.percentBadge}>
               <Text style={styles.percentText}>{progressPercent}%</Text>
@@ -125,10 +135,12 @@ export default function HomeDashboard() {
         <View style={styles.workloadCard}>
           <View style={styles.workloadHead}>
             <View style={styles.sparkIcon}>
-              <Icon name="spark" size={18} color={colors.white} />
+              <Icon name="spark" size={18} color={colors.accent} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.workloadKicker}>MAMDANI FUZZY WORKLOAD MODEL</Text>
+              <Text style={styles.workloadKicker}>
+                MAMDANI FUZZY WORKLOAD MODEL
+              </Text>
               <Text style={styles.workloadTitle}>
                 Recommended Load: Max {fuzzyAnalysis.recommendedUnitsMax} Units
               </Text>
@@ -141,22 +153,28 @@ export default function HomeDashboard() {
                     fuzzyAnalysis.stressLevel === "Low"
                       ? "#28a745"
                       : fuzzyAnalysis.stressLevel === "Moderate"
-                      ? colors.accent
-                      : "#dc3545",
+                        ? colors.accent
+                        : "#dc3545",
                 },
               ]}
             >
-              <Text style={styles.stressPillText}>
-                {fuzzyAnalysis.stressLevel} Stress ({fuzzyAnalysis.stressScore}%)
+              <Text
+                style={[
+                  styles.stressPillText,
+                  fuzzyAnalysis.stressLevel === "Moderate" && {
+                    color: colors.primary,
+                  },
+                ]}
+              >
+                {fuzzyAnalysis.stressLevel} Stress ({fuzzyAnalysis.stressScore}
+                %)
               </Text>
             </View>
           </View>
 
           <Text style={styles.workloadDesc}>{fuzzyAnalysis.explanation}</Text>
 
-          <Text style={styles.disclaimerText}>
-            {fuzzyAnalysis.disclaimer}
-          </Text>
+          <Text style={styles.disclaimerText}>{fuzzyAnalysis.disclaimer}</Text>
         </View>
 
         {/* Quick Access Menu */}
@@ -167,8 +185,10 @@ export default function HomeDashboard() {
             style={styles.quickAction}
             onPress={() => router.push("/(tabs)/roadmap")}
           >
-            <View style={[styles.actionIcon, { backgroundColor: colors.mint }]}>
-              <Icon name="route" size={20} color={colors.primary} />
+            <View
+              style={[styles.actionIcon, { backgroundColor: colors.primary }]}
+            >
+              <Icon name="route" size={20} color={colors.accent} />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.actionTitle}>Academic Roadmap</Text>
@@ -184,7 +204,7 @@ export default function HomeDashboard() {
             style={styles.quickAction}
             onPress={() => router.push("/(tabs)/courses")}
           >
-            <View style={[styles.actionIcon, { backgroundColor: "#e8effe" }]}>
+            <View style={[styles.actionIcon, { backgroundColor: colors.mint }]}>
               <Icon name="book" size={20} color={colors.primary} />
             </View>
             <View style={{ flex: 1 }}>
@@ -201,11 +221,15 @@ export default function HomeDashboard() {
             style={styles.quickAction}
             onPress={() => setShowDagModal(true)}
           >
-            <View style={[styles.actionIcon, { backgroundColor: "#fef3e2" }]}>
-              <Icon name="compass" size={20} color="#b76e00" />
+            <View
+              style={[styles.actionIcon, { backgroundColor: colors.goldSoft }]}
+            >
+              <Icon name="compass" size={20} color={colors.primary} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.actionTitle}>Prerequisite DAG Visualizer</Text>
+              <Text style={styles.actionTitle}>
+                Prerequisite DAG Visualizer
+              </Text>
               <Text style={styles.actionSub}>
                 Inspect course dependency chains & unlocks
               </Text>
@@ -262,13 +286,15 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 24,
     backgroundColor: colors.primary,
+    borderWidth: 2,
+    borderColor: colors.accent,
     alignItems: "center",
     justifyContent: "center",
   },
   avatarText: {
     fontFamily: fonts.bold,
     fontSize: 16,
-    color: colors.white,
+    color: colors.accent,
   },
   welcomeKicker: {
     fontFamily: fonts.bold,
@@ -301,7 +327,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bold,
     fontSize: 10,
     letterSpacing: 1.5,
-    color: colors.mint,
+    color: colors.accent,
   },
   cardTitle: {
     fontFamily: fonts.bold,
@@ -311,6 +337,8 @@ const styles = StyleSheet.create({
   },
   percentBadge: {
     backgroundColor: colors.deep,
+    borderWidth: 1,
+    borderColor: "rgba(255, 199, 44, 0.35)",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: radius.sm,
@@ -375,7 +403,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: colors.primary,
+    backgroundColor: "rgba(255, 199, 44, 0.16)",
     alignItems: "center",
     justifyContent: "center",
   },

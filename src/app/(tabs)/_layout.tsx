@@ -85,6 +85,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   activePillIconFocused: {
-    backgroundColor: colors.mint,
+    backgroundColor: colors.accent,
   },
 });

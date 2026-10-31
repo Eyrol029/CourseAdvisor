@@ -27,7 +27,7 @@ export default function Step1Profile({
   return (
     <View style={s.content}>
       <View style={styles.stepIcon}>
-        <Icon name="user" size={24} color={colors.primary} />
+        <Icon name="user" size={24} color={colors.accent} />
       </View>
       <Text style={s.kicker}>STUDENT PROFILE</Text>
       <Text style={s.h1}>Let’s personalize your plan</Text>
@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: radius.md,
-    backgroundColor: colors.mint,
+    backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -135,13 +135,15 @@ const styles = StyleSheet.create({
     height: 52,
     borderRadius: 26,
     backgroundColor: colors.primary,
+    borderWidth: 2,
+    borderColor: colors.accent,
     alignItems: "center",
     justifyContent: "center",
   },
   avatarText: {
     fontFamily: fonts.bold,
     fontSize: 16,
-    color: colors.white,
+    color: colors.accent,
   },
   previewName: {
     fontFamily: fonts.bold,
@@ -202,7 +204,9 @@ const styles = StyleSheet.create({
     gap: 12,
     padding: 14,
     borderRadius: radius.md,
-    backgroundColor: colors.mint,
+    backgroundColor: colors.goldSoft,
+    borderWidth: 1,
+    borderColor: colors.goldBorder,
     marginTop: 4,
   },
   infoText: {

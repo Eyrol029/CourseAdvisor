@@ -257,12 +257,12 @@ export default function CoursesScreen() {
                     <Icon
                       name={isSelectedCourseCompleted ? "close" : "check"}
                       size={14}
-                      color={isSelectedCourseCompleted ? colors.deep : colors.white}
+                      color={isSelectedCourseCompleted ? colors.primary : colors.accent}
                     />
                     <Text
                       style={[
                         styles.toggleActionText,
-                        isSelectedCourseCompleted && { color: colors.deep },
+                        isSelectedCourseCompleted && { color: colors.primary },
                       ]}
                     >
                       {isSelectedCourseCompleted ? "Mark Incomplete" : "Mark Passed"}
@@ -389,7 +389,9 @@ const styles = StyleSheet.create({
     color: colors.ink,
   },
   unitBadge: {
-    backgroundColor: colors.mint,
+    backgroundColor: colors.goldSoft,
+    borderWidth: 1,
+    borderColor: colors.goldBorder,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: radius.sm,
@@ -443,7 +445,7 @@ const styles = StyleSheet.create({
     color: colors.ink,
   },
   yearChipTextActive: {
-    color: colors.white,
+    color: colors.accent,
   },
   statusFilterRow: {
     flexDirection: "row",
@@ -461,8 +463,8 @@ const styles = StyleSheet.create({
     borderColor: colors.line,
   },
   statusFilterChipActive: {
-    backgroundColor: colors.mint,
-    borderColor: colors.primary,
+    backgroundColor: colors.goldSoft,
+    borderColor: colors.accent,
   },
   statusFilterText: {
     fontFamily: fonts.bold,
@@ -639,12 +641,12 @@ const styles = StyleSheet.create({
     color: colors.muted,
   },
   cteTag: {
-    backgroundColor: "#EFF6FF",
+    backgroundColor: colors.goldSoft,
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: radius.pill,
     borderWidth: 1,
-    borderColor: "#BFDBFE",
+    borderColor: colors.goldBorder,
   },
   cteTagText: {
     fontFamily: fonts.bold,

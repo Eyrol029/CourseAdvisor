@@ -23,7 +23,7 @@ export default function Welcome({
       <View style={styles.body}>
         <View style={styles.topRow}>
           <View style={styles.brand}>
-            <Icon name="compass" size={32} color={colors.white} />
+            <Icon name="compass" size={32} color={colors.accent} />
           </View>
           {onSignOut && (
             <Pressable style={styles.signOutBtn} onPress={onSignOut}>
@@ -45,12 +45,26 @@ export default function Welcome({
         <View style={styles.path}>
           <View style={styles.line} />
           {path.map((item, i) => {
-            const filled = i !== 1;
+            const isStart = i === 0;
+            const isFinish = i === 2;
             return (
               <View key={item.small} style={styles.pathItem}>
-                <View style={[styles.dot, filled ? styles.dotFilled : styles.dotOutline]}>
+                <View
+                  style={[
+                    styles.dot,
+                    isStart
+                      ? styles.dotFilled
+                      : isFinish
+                        ? styles.dotGold
+                        : styles.dotOutline,
+                  ]}
+                >
                   {item.icon ? (
-                    <Icon name={item.icon} size={14} color={colors.white} />
+                    <Icon
+                      name={item.icon}
+                      size={14}
+                      color={isFinish ? colors.primary : colors.accent}
+                    />
                   ) : (
                     <Text style={styles.dotNum}>{item.num}</Text>
                   )}
@@ -86,6 +100,8 @@ const styles = StyleSheet.create({
     height: 64,
     borderRadius: 20,
     backgroundColor: colors.primary,
+    borderWidth: 2,
+    borderColor: colors.accent,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -117,7 +133,8 @@ const styles = StyleSheet.create({
   pathItem: { flexDirection: "row", alignItems: "center", gap: 14 },
   dot: { width: 32, height: 32, borderRadius: 16, alignItems: "center", justifyContent: "center" },
   dotFilled: { backgroundColor: colors.primary },
-  dotOutline: { backgroundColor: colors.mint, borderWidth: 2, borderColor: colors.primary },
+  dotGold: { backgroundColor: colors.accent },
+  dotOutline: { backgroundColor: colors.goldSoft, borderWidth: 2, borderColor: colors.accent },
   dotNum: { fontFamily: fonts.bold, fontSize: 13, color: colors.primary },
   small: { fontFamily: fonts.bold, fontSize: 10, letterSpacing: 1.5, color: colors.muted },
   pathText: { fontFamily: fonts.bold, fontSize: 15, color: colors.ink },

@@ -66,7 +66,7 @@ export default function Step3Standing({
       })}
 
       <View style={styles.summary}>
-        <Icon name="calendar" size={20} color={colors.white} />
+        <Icon name="calendar" size={20} color={colors.accent} />
         <View>
           <Text style={styles.sumSmall}>YOUR CURRENT STANDING</Text>
           <Text style={styles.sumMain}>
@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
     borderColor: colors.line,
     backgroundColor: colors.white,
   },
-  selected: { borderColor: colors.primary, backgroundColor: colors.mint },
+  selected: { borderColor: colors.primary, backgroundColor: colors.goldSoft },
   yearSmall: { fontFamily: fonts.regular, fontSize: 11, color: colors.muted },
   yearNum: { fontFamily: fonts.bold, fontSize: 22, color: colors.ink },
   termBtn: {
@@ -123,6 +123,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     marginTop: 4,
   },
-  sumSmall: { fontFamily: fonts.bold, fontSize: 10, letterSpacing: 1.5, color: colors.mint },
+  sumSmall: { fontFamily: fonts.bold, fontSize: 10, letterSpacing: 1.5, color: colors.accent },
   sumMain: { fontFamily: fonts.bold, fontSize: 15, color: colors.white },
 });

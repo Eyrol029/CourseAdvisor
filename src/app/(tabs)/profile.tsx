@@ -289,7 +289,7 @@ export default function ProfileScreen() {
 
           {/* Live Fuzzy Result Snippet */}
           <View style={styles.fuzzySummaryCard}>
-            <Icon name="spark" size={16} color={colors.white} />
+            <Icon name="spark" size={16} color={colors.accent} />
             <Text style={styles.fuzzySummaryText}>
               Predicted Semester Stress: {fuzzyAnalysis.stressScore}% (
               {fuzzyAnalysis.stressLevel}) · Max Load:{" "}
@@ -325,59 +325,6 @@ export default function ProfileScreen() {
               </View>
             ))
           )}
-        </View>
-
-        {/* Local Relational Database & Offline-First Storage */}
-        <View style={styles.sectionCard}>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
-            <Text style={styles.sectionTitle}>STORAGE & DATABASE</Text>
-            <View style={styles.dbBadge}>
-              <View style={styles.dbDot} />
-              <Text style={styles.dbBadgeText}>
-                100% Offline (Local SQLite)
-              </Text>
-            </View>
-          </View>
-
-          <Text
-            style={{
-              fontFamily: fonts.regular,
-              fontSize: 13,
-              color: colors.muted,
-              lineHeight: 18,
-            }}
-          >
-            All curriculum entities, prerequisite DAGs, student progress, and
-            roadmap schedules are stored directly on your device storage without
-            cloud dependency.
-          </Text>
-
-          <View style={styles.dbGrid}>
-            <View style={styles.dbGridItem}>
-              <Text style={styles.dbGridLabel}>Courses Entity</Text>
-              <Text style={styles.dbGridValue}>
-                {allCourses.length} Registered
-              </Text>
-            </View>
-            <View style={styles.dbGridItem}>
-              <Text style={styles.dbGridLabel}>Prerequisites</Text>
-              <Text style={styles.dbGridValue}>29 Graph Edges</Text>
-            </View>
-            <View style={styles.dbGridItem}>
-              <Text style={styles.dbGridLabel}>Query Engine</Text>
-              <Text style={styles.dbGridValue}>Recursive SQL CTE</Text>
-            </View>
-            <View style={styles.dbGridItem}>
-              <Text style={styles.dbGridLabel}>Cloud / Network</Text>
-              <Text style={styles.dbGridValue}>Disabled (Private)</Text>
-            </View>
-          </View>
         </View>
 
         {/* Account & Session */}
@@ -547,13 +494,15 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: 28,
     backgroundColor: colors.primary,
+    borderWidth: 2,
+    borderColor: colors.accent,
     alignItems: "center",
     justifyContent: "center",
   },
   avatarText: {
     fontFamily: fonts.bold,
     fontSize: 18,
-    color: colors.white,
+    color: colors.accent,
   },
   profileName: {
     fontFamily: fonts.bold,
@@ -580,7 +529,9 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: radius.sm,
-    backgroundColor: colors.mint,
+    backgroundColor: colors.goldSoft,
+    borderWidth: 1,
+    borderColor: colors.goldBorder,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -614,7 +565,9 @@ const styles = StyleSheet.create({
     color: colors.muted,
   },
   standingPill: {
-    backgroundColor: "#e8effe",
+    backgroundColor: colors.goldSoft,
+    borderWidth: 1,
+    borderColor: colors.goldBorder,
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
@@ -632,7 +585,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 8,
     borderRadius: radius.sm,
-    backgroundColor: "#f4f7fc",
+    backgroundColor: colors.paper,
     alignItems: "center",
     borderWidth: 1,
     borderColor: colors.line,
@@ -647,18 +600,18 @@ const styles = StyleSheet.create({
     color: colors.ink,
   },
   yearChoiceTextActive: {
-    color: colors.white,
+    color: colors.accent,
   },
   syncPriorBanner: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    backgroundColor: "#eff6ff",
+    backgroundColor: colors.goldSoft,
     borderRadius: radius.sm,
     paddingVertical: 10,
     paddingHorizontal: 12,
     borderWidth: 1,
-    borderColor: "#bfdbfe",
+    borderColor: colors.goldBorder,
     marginTop: 4,
   },
   syncPriorBannerText: {
@@ -673,7 +626,7 @@ const styles = StyleSheet.create({
   },
   metricBox: {
     flex: 1,
-    backgroundColor: "#f4f7fc",
+    backgroundColor: colors.mint,
     padding: 10,
     borderRadius: radius.sm,
     alignItems: "center",
@@ -702,7 +655,9 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   avgBadge: {
-    backgroundColor: colors.mint,
+    backgroundColor: colors.goldSoft,
+    borderWidth: 1,
+    borderColor: colors.goldBorder,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
@@ -747,7 +702,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    backgroundColor: colors.deep,
+    backgroundColor: colors.primary,
     padding: 10,
     borderRadius: radius.sm,
     marginTop: 4,
@@ -769,7 +724,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 10,
     borderRadius: radius.sm,
-    backgroundColor: "#f4f7fc",
+    backgroundColor: colors.paper,
   },
   savedPlanName: {
     fontFamily: fonts.bold,
@@ -845,54 +800,6 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bold,
     fontSize: 13,
     color: colors.white,
-  },
-  dbBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    backgroundColor: "#ECFDF5",
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: radius.pill,
-    borderWidth: 1,
-    borderColor: "#A7F3D0",
-  },
-  dbDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: "#10B981",
-  },
-  dbBadgeText: {
-    fontFamily: fonts.bold,
-    fontSize: 10,
-    color: "#065F46",
-  },
-  dbGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-    marginTop: 4,
-  },
-  dbGridItem: {
-    flex: 1,
-    minWidth: "45%",
-    backgroundColor: colors.paper,
-    padding: 10,
-    borderRadius: radius.sm,
-    borderWidth: 1,
-    borderColor: colors.line,
-  },
-  dbGridLabel: {
-    fontFamily: fonts.medium,
-    fontSize: 11,
-    color: colors.muted,
-  },
-  dbGridValue: {
-    fontFamily: fonts.bold,
-    fontSize: 12,
-    color: colors.ink,
-    marginTop: 2,
   },
   signOutHeaderBtn: {
     flexDirection: "row",
